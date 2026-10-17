@@ -12,7 +12,16 @@ export interface ApiError {
 const SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
 
 export function useApi() {
-  const csrf = useCookie('csrftoken', { readonly: true })
+  const csrfSsr = import.meta.server ? useCookie('csrftoken', { readonly: true }) : null
+
+  // No navegador lê o cookie na hora do envio (ele pode ter sido definido após o carregamento da página).
+  function lerCsrf(): string | undefined {
+    if (import.meta.client) {
+      const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/)
+      return m?.[1] ? decodeURIComponent(m[1]) : undefined
+    }
+    return csrfSsr?.value ?? undefined
+  }
 
   async function request<T>(
     path: string,
@@ -20,8 +29,9 @@ export function useApi() {
   ): Promise<T> {
     const method = (options.method || 'GET').toUpperCase()
     const headers: Record<string, string> = {}
-    if (!SAFE_METHODS.includes(method) && csrf.value) {
-      headers['X-CSRFToken'] = csrf.value
+    const csrf = lerCsrf()
+    if (!SAFE_METHODS.includes(method) && csrf) {
+      headers['X-CSRFToken'] = csrf
     }
     // No SSR o navegador não participa: repassa cookies da requisição de entrada.
     if (import.meta.server) {
