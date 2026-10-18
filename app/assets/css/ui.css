@@ -1,4 +1,4 @@
-/* UI kit próprio (folha, menu, select, calendário, faixa semanal) e layout mobile da agenda.
+/* UI kit próprio (folha, menu, select, calendário) e layout mobile da agenda.
    Usa só os tokens de tokens.css. Transições de 120-180 ms (desligadas por prefers-reduced-motion em base.css). */
 
 :root { --altura-nav: 68px; }
@@ -9,10 +9,8 @@ main { min-width: 0; }
 /* ---------- feedback de botões ---------- */
 button,
 .btn,
-.filtro,
 .menu-item,
 .dia,
-.faixa-dia,
 .ui-opcao {
   transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, opacity 150ms ease, transform 120ms ease;
 }
@@ -131,18 +129,35 @@ button[aria-busy='true']::after {
 .menu-item.perigo:hover { color: var(--erro); }
 .menu-item[aria-disabled='true'] { opacity: 0.5; cursor: not-allowed; }
 
-.avatar {
-  width: var(--alvo);
+.perfil-botao {
+  gap: var(--e2);
   min-width: var(--alvo);
-  height: var(--alvo);
-  padding: 0;
+  padding: 0 var(--e2) 0 var(--e1);
+  background: var(--superficie);
+  color: var(--texto);
+  border: 1px solid var(--borda-controle);
+  border-radius: 999px;
+}
+.perfil-botao:hover { background: var(--bg); color: var(--texto); }
+.perfil-botao:active:not(:disabled) { background: var(--borda); }
+.avatar-circulo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
   background: var(--primaria);
   color: var(--on-primaria);
-  border-color: var(--primaria);
   border-radius: 50%;
+  font-size: 0.875rem;
+  font-weight: 700;
 }
-.avatar:hover { background: var(--primaria-hover); color: var(--on-primaria); }
-.avatar-inicial { font-size: 1.125rem; font-weight: 700; }
+.perfil-nome { display: none; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.perfil-chevron { transition: transform 150ms ease; }
+.perfil-chevron.girado { transform: rotate(180deg); }
+@media (min-width: 480px) {
+  .perfil-nome { display: inline; }
+}
 
 /* ---------- select e gatilhos ---------- */
 .ui-select,
@@ -234,45 +249,15 @@ main ul.ui-lista > li.ui-opcao {
 .ponto.vazio { visibility: hidden; }
 .calendario-rodape { margin: var(--e3) 0 0; }
 
-/* ---------- faixa semanal ---------- */
-.faixa-semana { display: flex; align-items: center; gap: var(--e1); margin-bottom: var(--e3); }
-.faixa-dias { display: grid; flex: 1; min-width: 0; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; padding: 2px 0; overflow: visible; }
-.faixa-dias .faixa-dia {
-  display: block;
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  height: 68px;
-  min-height: var(--alvo);
-  padding: 8px 0 0;
-  margin: 0;
-  overflow: visible;
-  text-align: center;
-  line-height: 1;
-  background: transparent;
-  color: var(--texto);
-  border: 2px solid transparent;
-  border-radius: var(--raio-menor);
-}
-.faixa-dias .faixa-dia:focus-visible { outline-offset: -2px; }
-.faixa-dias .faixa-dia:hover { background: var(--superficie); }
-.faixa-conteudo { display: block; width: 100%; }
-.faixa-letra { display: block; height: 16px; line-height: 16px; font-size: 0.75rem; color: var(--texto-suave); }
-.faixa-num { display: block; height: 24px; margin-top: 2px; line-height: 24px; font-size: 1.0625rem; font-weight: 700; }
-.faixa-conteudo .ponto { display: block; width: 5px; height: 5px; margin: 5px auto 0; border-radius: 50%; background: currentcolor; }
-.faixa-conteudo .ponto.vazio { visibility: hidden; }
-.faixa-dias .faixa-dia.hoje { border-color: var(--primaria); }
-.faixa-dias .faixa-dia[aria-pressed='true'],
-.faixa-dias .faixa-dia[aria-pressed='true']:hover { background: var(--primaria); border-color: var(--primaria); color: var(--on-primaria); }
-.faixa-dias .faixa-dia[aria-pressed='true'] .faixa-letra { color: var(--on-primaria); }
-@media (max-width: 479px) {
-  .faixa-semana > .btn-icone { display: none; }
-}
-
 /* ---------- agenda ---------- */
 .agenda { display: block; min-width: 0; }
-.agenda-titulo { display: flex; align-items: center; justify-content: space-between; gap: var(--e3); margin-bottom: var(--e3); }
-.agenda-titulo h1 { margin: 0; }
+.agenda-identidade { display: flex; align-items: center; justify-content: space-between; gap: var(--e3); margin-bottom: var(--e2); }
+.nome-prof { min-width: 0; margin: 0; overflow: hidden; color: var(--texto-suave); text-overflow: ellipsis; white-space: nowrap; }
+.agenda-identidade .btn-compacto { flex: none; }
+@media (max-width: 360px) {
+  .texto-longo { display: none; }
+}
+.agenda-h1 { margin: 0 0 var(--e3); font-size: 2rem; }
 .segmentado {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -298,12 +283,13 @@ main ul.ui-lista > li.ui-opcao {
   white-space: nowrap;
 }
 .agenda-periodo .btn-secundario { flex: none; }
-.btn-hoje .icone { display: none; }
+.ui-data.pilula { flex: 1 1 0; width: auto; }
+.ui-data.pilula .ui-gatilho { justify-content: center; font-weight: 700; border-radius: var(--raio); }
+.ui-data.pilula .ui-valor { flex: 0 1 auto; }
 @media (max-width: 380px) {
   .agenda-periodo { gap: var(--e1); }
   .periodo-texto { font-size: 0.9375rem; }
   .btn-hoje { width: var(--alvo); min-width: var(--alvo); padding: 0; }
-  .btn-hoje .icone { display: block; }
   .btn-hoje .hoje-texto {
     position: absolute;
     width: 1px;
@@ -313,30 +299,11 @@ main ul.ui-lista > li.ui-opcao {
   }
 }
 
-.filtros {
-  display: flex;
-  gap: var(--e2);
-  max-width: 100%;
-  margin-bottom: var(--e1);
-  padding-bottom: var(--e2);
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
-}
-.filtro {
-  flex: none;
-  padding: 0 var(--e4);
-  background: var(--superficie);
-  border-radius: 999px;
-  white-space: nowrap;
-  scroll-snap-align: start;
-}
-.filtro[aria-pressed='true'] { background: var(--primaria); color: var(--on-primaria); border-color: var(--primaria); }
-.filtro[aria-pressed='true']::before { content: '\2713'; }
-
-.proximo { display: flex; align-items: center; gap: var(--e3); margin-bottom: var(--e3); padding: var(--e3) var(--e4); }
-.proximo p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-
+.filtros-linha { display: flex; align-items: center; gap: var(--e2); margin-bottom: var(--e1); }
+.btn-filtros { min-width: 0; max-width: 100%; justify-content: flex-start; }
+.filtros-texto { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn-filtros.ativo { border-color: var(--primaria); border-width: 2px; }
+.filtro-indicador { flex: none; width: 8px; height: 8px; background: var(--primaria); border-radius: 50%; }
 .lista-periodo { animation: aparecer 150ms ease-out both; }
 .titulo-dia { margin: var(--e4) 0 var(--e2); font-size: 1rem; color: var(--texto-suave); }
 
@@ -369,7 +336,9 @@ main ul > li.item-agendamento { padding: var(--e3) var(--e4); }
   border: 1px dashed var(--borda-controle);
   border-radius: var(--raio);
 }
-.estado-vazio h2 { margin: 0; color: var(--texto); font-size: 1.125rem; }
+.estado-vazio h2 { margin: 0; color: var(--texto); font-size: 1.25rem; }
+.icone-vazio { color: var(--primaria); }
+.link-acao { color: var(--primaria); font-weight: 700; text-decoration: none; }
 .estado-vazio p { margin: 0; }
 .estado-erro { margin-top: var(--e3); }
 
