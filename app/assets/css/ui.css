@@ -208,7 +208,7 @@ main ul.ui-lista > li.ui-opcao {
 
 /* ---------- calendário (UiDatePicker) ---------- */
 .calendario-topo { display: flex; align-items: center; justify-content: space-between; gap: var(--e2); margin-bottom: var(--e2); }
-.calendario-topo h3 { margin: 0; text-align: center; text-transform: capitalize; }
+.calendario-topo h3 { margin: 0; text-align: center; }
 .calendario-grade { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .calendario-grade th { padding: var(--e1) 0; color: var(--texto-suave); font-size: 0.8125rem; font-weight: 600; }
 .calendario-grade td { padding: 1px; text-align: center; }
@@ -236,25 +236,35 @@ main ul.ui-lista > li.ui-opcao {
 
 /* ---------- faixa semanal ---------- */
 .faixa-semana { display: flex; align-items: center; gap: var(--e1); margin-bottom: var(--e3); }
-.faixa-dias { display: grid; flex: 1; min-width: 0; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
-.faixa-dia {
-  flex-direction: column;
-  gap: 2px;
+.faixa-dias { display: grid; flex: 1; min-width: 0; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; padding: 2px 0; overflow: visible; }
+.faixa-dias .faixa-dia {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
   min-width: 0;
-  min-height: 64px;
-  padding: var(--e1) 0;
+  height: 68px;
+  min-height: var(--alvo);
+  padding: 8px 0 0;
+  margin: 0;
+  overflow: visible;
+  text-align: center;
+  line-height: 1;
   background: transparent;
   color: var(--texto);
   border: 2px solid transparent;
   border-radius: var(--raio-menor);
 }
-.faixa-dia:hover { background: var(--superficie); }
-.faixa-letra { color: var(--texto-suave); font-size: 0.75rem; }
-.faixa-num { font-size: 1.0625rem; font-weight: 700; }
-.faixa-dia.hoje { border-color: var(--primaria); }
-.faixa-dia[aria-pressed='true'],
-.faixa-dia[aria-pressed='true']:hover { background: var(--primaria); border-color: var(--primaria); color: var(--on-primaria); }
-.faixa-dia[aria-pressed='true'] .faixa-letra { color: var(--on-primaria); }
+.faixa-dias .faixa-dia:focus-visible { outline-offset: -2px; }
+.faixa-dias .faixa-dia:hover { background: var(--superficie); }
+.faixa-conteudo { display: block; width: 100%; }
+.faixa-letra { display: block; height: 16px; line-height: 16px; font-size: 0.75rem; color: var(--texto-suave); }
+.faixa-num { display: block; height: 24px; margin-top: 2px; line-height: 24px; font-size: 1.0625rem; font-weight: 700; }
+.faixa-conteudo .ponto { display: block; width: 5px; height: 5px; margin: 5px auto 0; border-radius: 50%; background: currentcolor; }
+.faixa-conteudo .ponto.vazio { visibility: hidden; }
+.faixa-dias .faixa-dia.hoje { border-color: var(--primaria); }
+.faixa-dias .faixa-dia[aria-pressed='true'],
+.faixa-dias .faixa-dia[aria-pressed='true']:hover { background: var(--primaria); border-color: var(--primaria); color: var(--on-primaria); }
+.faixa-dias .faixa-dia[aria-pressed='true'] .faixa-letra { color: var(--on-primaria); }
 @media (max-width: 479px) {
   .faixa-semana > .btn-icone { display: none; }
 }
@@ -275,9 +285,33 @@ main ul.ui-lista > li.ui-opcao {
 }
 .segmentado button { background: transparent; border-color: transparent; }
 .segmentado button[aria-pressed='true'] { background: var(--primaria); color: var(--on-primaria); border-color: var(--primaria); }
-.agenda-periodo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e2); margin-bottom: var(--e3); }
-.periodo-texto { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 1.0625rem; font-weight: 700; text-align: center; }
+.agenda-periodo { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--e2); margin-bottom: var(--e3); }
+.periodo-texto {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .agenda-periodo .btn-secundario { flex: none; }
+.btn-hoje .icone { display: none; }
+@media (max-width: 380px) {
+  .agenda-periodo { gap: var(--e1); }
+  .periodo-texto { font-size: 0.9375rem; }
+  .btn-hoje { width: var(--alvo); min-width: var(--alvo); padding: 0; }
+  .btn-hoje .icone { display: block; }
+  .btn-hoje .hoje-texto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
 
 .filtros {
   display: flex;

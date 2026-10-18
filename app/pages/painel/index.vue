@@ -158,7 +158,12 @@ onMounted(() => {
         <UiIcon nome="chevron-direita" />
       </button>
       <UiDatePicker v-model="dia" variant="compacto" :today="hoje" label="Escolher data" aria-label="Escolher data" />
-      <button type="button" class="btn-secundario" :disabled="dia === hoje" @click="dia = hoje">Hoje</button>
+      <button
+        type="button" class="btn-secundario btn-hoje" :disabled="dia === hoje" aria-label="Ir para hoje"
+        title="Ir para hoje" @click="dia = hoje"
+      >
+        <UiIcon nome="calendario-check" :tamanho="20" /><span class="hoje-texto">Hoje</span>
+      </button>
     </div>
 
     <UiWeekStrip v-if="modo === 'dia'" v-model="dia" :marked="marcados" :today="hoje" />
@@ -205,9 +210,6 @@ onMounted(() => {
           <h2>{{ modo === 'dia' ? 'Seu dia está livre' : 'Sua semana está livre' }}</h2>
           <p>Nenhum atendimento por aqui. Aproveite ou registre um novo.</p>
         </template>
-        <button type="button" class="btn-secundario" @click="criando = true">
-          <UiIcon nome="mais" :tamanho="20" /> Novo agendamento
-        </button>
       </div>
 
       <template v-else>

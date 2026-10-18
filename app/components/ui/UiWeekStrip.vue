@@ -27,9 +27,11 @@ const rotulo = (ymd: string) => {
         :aria-current="d === today ? 'date' : undefined" :aria-label="rotulo(d)" :class="{ hoje: d === today }"
         @click="modelo = d"
       >
-        <span class="faixa-letra" aria-hidden="true">{{ letras[i]?.letra }}</span>
-        <span class="faixa-num" aria-hidden="true">{{ numeroDoDia(d) }}</span>
-        <span class="ponto" :class="{ vazio: !marcados.has(d) }" aria-hidden="true" />
+        <span class="faixa-conteudo" aria-hidden="true">
+          <span class="faixa-letra">{{ letras[i]?.letra }}</span>
+          <span class="faixa-num">{{ numeroDoDia(d) }}</span>
+          <span class="ponto" :class="{ vazio: !marcados.has(d) }" />
+        </span>
       </button>
     </div>
     <button type="button" class="btn-icone" aria-label="Próxima semana" @click="modelo = somarDias(modelo, 7)">
