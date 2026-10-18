@@ -24,6 +24,22 @@ function preencher() {
   form.confirmacao_automatica = c.confirmacao_automatica
 }
 
+preencher() // já preenche com a configuração carregada pelo layout (evita "alterado" falso)
+
+// Há alterações não salvas quando o formulário difere da configuração carregada.
+const alterado = computed(() => {
+  const c = configuracao.value
+  if (!c) return false
+  return Number(form.antecedencia_min_agendamento_h) !== c.antecedencia_min_agendamento_h
+    || Number(form.antecedencia_min_cancelamento_h) !== c.antecedencia_min_cancelamento_h
+    || Number(form.janela_max_dias) !== c.janela_max_dias
+    || Number(form.intervalo_entre_atendimentos_min) !== c.intervalo_entre_atendimentos_min
+    || form.confirmacao_automatica !== c.confirmacao_automatica
+})
+watch(alterado, (v) => {
+  if (v) salvo.value = false
+})
+
 onMounted(async () => {
   const c = await carga.executar(() => api.configuracao.obter())
   if (c) configuracao.value = c
@@ -53,15 +69,17 @@ async function salvar() {
 </script>
 
 <template>
-  <section>
-    <h1>Configurações</h1>
+  <section class="gestao">
+    <GestaoCabecalho titulo="Configurações" />
     <AvisoErro v-if="carga.erro.value" :mensagem="carga.erro.value" />
-    <div class="cartao">
-      <h2>Seu link de agendamento</h2>
-      <p class="campo">
+
+    <div class="cartao secao-config">
+      <h2>Link de agendamento</h2>
+      <p class="ajuda">Envie este link para suas clientes agendarem sozinhas.</p>
+      <div class="campo">
         <label for="link-publico">Link</label>
         <input id="link-publico" type="text" readonly :value="linkPublico.link.value">
-      </p>
+      </div>
       <p class="acoes">
         <button type="button" class="btn-secundario" @click="linkPublico.copiar">
           <UiIcon :nome="linkPublico.copiado.value ? 'check' : 'copiar'" :tamanho="20" />
@@ -71,16 +89,57 @@ async function salvar() {
       </p>
       <p class="somente-leitor" role="status" aria-live="polite">{{ linkPublico.copiado.value ? 'Link copiado.' : '' }}</p>
     </div>
-    <form v-if="configuracao" class="cartao" @submit.prevent="salvar">
+
+    <form v-if="configuracao" class="config-form" @submit.prevent="salvar">
       <AvisoErro v-if="envio.erro.value" :mensagem="envio.erro.value" />
-      <p>Fuso horário: {{ configuracao.timezone }}</p>
-      <CampoForm id="antecedencia_min_agendamento_h" v-model="form.antecedencia_min_agendamento_h" tipo="number" min="0" required label="Antecedência mínima para agendar (horas)" :erros="envio.erros.value.antecedencia_min_agendamento_h" />
-      <CampoForm id="antecedencia_min_cancelamento_h" v-model="form.antecedencia_min_cancelamento_h" tipo="number" min="0" required label="Antecedência mínima para cancelar (horas)" :erros="envio.erros.value.antecedencia_min_cancelamento_h" />
-      <CampoForm id="janela_max_dias" v-model="form.janela_max_dias" tipo="number" min="1" required label="Janela máxima de agendamento (dias)" :erros="envio.erros.value.janela_max_dias" />
-      <CampoForm id="intervalo_entre_atendimentos_min" v-model="form.intervalo_entre_atendimentos_min" tipo="number" min="0" required label="Intervalo entre atendimentos (minutos)" :erros="envio.erros.value.intervalo_entre_atendimentos_min" />
-      <CampoForm id="confirmacao_automatica" v-model="form.confirmacao_automatica" tipo="checkbox" label="Confirmar agendamentos online automaticamente" />
-      <button type="submit" :disabled="envio.enviando.value">{{ envio.enviando.value ? 'Salvando…' : 'Salvar' }}</button>
-      <span v-if="salvo" role="status">Configurações salvas.</span>
+
+      <div class="cartao secao-config">
+        <h2>Regras de agendamento</h2>
+        <CampoForm
+          id="antecedencia_min_agendamento_h" v-model="form.antecedencia_min_agendamento_h" tipo="number" min="0" required
+          sufixo="horas" label="Antecedência para agendar" ajuda="Tempo mínimo entre o agendamento e o atendimento."
+          inputmode="numeric" :erros="envio.erros.value.antecedencia_min_agendamento_h"
+        />
+        <CampoForm
+          id="antecedencia_min_cancelamento_h" v-model="form.antecedencia_min_cancelamento_h" tipo="number" min="0" required
+          sufixo="horas" label="Antecedência para cancelar" ajuda="Até quando a cliente pode cancelar sozinha."
+          inputmode="numeric" :erros="envio.erros.value.antecedencia_min_cancelamento_h"
+        />
+        <CampoForm
+          id="janela_max_dias" v-model="form.janela_max_dias" tipo="number" min="1" required sufixo="dias"
+          label="Janela de agendamento" ajuda="Até quantos dias à frente é possível agendar."
+          inputmode="numeric" :erros="envio.erros.value.janela_max_dias"
+        />
+        <CampoForm
+          id="intervalo_entre_atendimentos_min" v-model="form.intervalo_entre_atendimentos_min" tipo="number" min="0" required
+          sufixo="min" label="Intervalo entre atendimentos" ajuda="Folga reservada depois de cada atendimento."
+          inputmode="numeric" :erros="envio.erros.value.intervalo_entre_atendimentos_min"
+        />
+      </div>
+
+      <div class="cartao secao-config">
+        <h2>Confirmação</h2>
+        <UiSwitch
+          v-model="form.confirmacao_automatica" label="Confirmar agendamentos online automaticamente"
+          ajuda="Desligado: cada agendamento fica pendente até você confirmar."
+        />
+      </div>
+
+      <div class="cartao secao-config">
+        <h2>Fuso horário</h2>
+        <dl class="detalhes">
+          <dt>Fuso</dt>
+          <dd>{{ configuracao.timezone }}</dd>
+        </dl>
+        <p class="ajuda">O fuso não pode ser alterado por aqui.</p>
+      </div>
+
+      <div class="barra-salvar">
+        <p class="barra-msg" role="status" aria-live="polite">{{ salvo ? 'Alterações salvas' : '' }}</p>
+        <button type="submit" :disabled="!alterado || envio.enviando.value" :aria-busy="envio.enviando.value || undefined">
+          {{ envio.enviando.value ? 'Salvando…' : 'Salvar alterações' }}
+        </button>
+      </div>
     </form>
   </section>
 </template>

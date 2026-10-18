@@ -7,13 +7,33 @@ const lista = useEnvio()
 const envio = useEnvio()
 
 const servicos = ref<ServicoPainel[]>([])
+const carregou = ref(false)
 const editando = ref<number | 'novo' | null>(null)
 const apagando = ref<number | null>(null)
 const form = reactive({ nome: '', duracao_min: '' as string | number, preco: '', ativo: true })
 
+type Situacao = 'todos' | 'ativos' | 'inativos'
+const SITUACOES: { valor: Situacao, rotulo: string }[] = [
+  { valor: 'todos', rotulo: 'Todos' },
+  { valor: 'ativos', rotulo: 'Ativos' },
+  { valor: 'inativos', rotulo: 'Inativos' },
+]
+const situacao = ref<Situacao>('todos')
+const visiveis = computed(() =>
+  servicos.value.filter(s => situacao.value === 'todos' || (situacao.value === 'ativos' ? s.ativo : !s.ativo)),
+)
+
+const folha = computed({
+  get: () => editando.value !== null,
+  set: (v: boolean) => {
+    if (!v) editando.value = null
+  },
+})
+
 async function carregar() {
   const r = await carga.executar(() => api.servicos.listar())
   if (r) servicos.value = r
+  carregou.value = true
 }
 
 function abrir(s?: ServicoPainel) {
@@ -62,41 +82,87 @@ async function apagar(id: number) {
   }
 }
 
+const menuDe = (s: ServicoPainel) => [
+  { id: 'alternar', label: s.ativo ? 'Inativar' : 'Ativar' },
+  { id: 'apagar', label: 'Apagar', danger: true },
+]
+function aoMenu(s: ServicoPainel, id: string) {
+  if (id === 'alternar') void alternar(s)
+  else apagando.value = s.id
+}
+
 onMounted(carregar)
 </script>
 
 <template>
-  <section>
-    <h1>Serviços</h1>
-    <AvisoErro v-if="carga.erro.value" :mensagem="carga.erro.value" />
+  <section class="gestao">
+    <GestaoCabecalho titulo="Serviços" acao="Adicionar serviço" @acao="abrir()" />
+
+    <div v-if="servicos.length" class="segmentado" role="group" aria-label="Situação do serviço">
+      <button
+        v-for="f in SITUACOES" :key="f.valor" type="button" :aria-pressed="situacao === f.valor"
+        @click="situacao = f.valor"
+      >
+        {{ f.rotulo }}
+      </button>
+    </div>
+
     <AvisoErro v-if="lista.erro.value" :mensagem="lista.erro.value" />
-    <p v-if="lista.erro.value.includes('uso')">Dica: desative o serviço em vez de apagar.</p>
+    <p v-if="lista.erro.value.includes('uso')" class="ajuda">Dica: inative o serviço em vez de apagar.</p>
 
-    <p><button type="button" @click="abrir()">Novo serviço</button></p>
+    <div v-if="!carregou && !carga.erro.value" role="status" class="esqueletos">
+      <p class="somente-leitor">Carregando…</p>
+      <div v-for="n in 3" :key="n" class="esqueleto esqueleto-cartao" aria-hidden="true" />
+    </div>
 
-    <form v-if="editando !== null" class="cartao" @submit.prevent="salvar">
-      <h2>{{ editando === 'novo' ? 'Novo serviço' : 'Editar serviço' }}</h2>
-      <AvisoErro v-if="envio.erro.value" :mensagem="envio.erro.value" />
-      <CampoForm id="nome" v-model="form.nome" label="Nome" required maxlength="100" :erros="envio.erros.value.nome" />
-      <CampoForm id="duracao_min" v-model="form.duracao_min" tipo="number" label="Duração (minutos)" required min="1" :erros="envio.erros.value.duracao_min" />
-      <CampoForm id="preco" v-model="form.preco" label="Preço (R$)" inputmode="decimal" required :erros="envio.erros.value.preco" />
-      <CampoForm id="ativo" v-model="form.ativo" tipo="checkbox" label="Ativo (aparece para agendamento)" />
-      <button type="button" :disabled="envio.enviando.value" @click="editando = null">Cancelar</button>
-      <button type="submit" :disabled="envio.enviando.value">{{ envio.enviando.value ? 'Salvando…' : 'Salvar' }}</button>
-    </form>
+    <div v-else-if="carga.erro.value && !servicos.length" class="estado-erro">
+      <AvisoErro :mensagem="carga.erro.value" />
+      <p><button type="button" class="btn-secundario" @click="carregar">Tentar de novo</button></p>
+    </div>
 
-    <p v-if="!servicos.length && !carga.enviando.value" class="vazio">Nenhum serviço cadastrado.</p>
-    <ul>
-      <li v-for="s in servicos" :key="s.id" class="linha">
-        {{ s.nome }} — {{ s.duracao_min }} min — {{ formatarPreco(s.preco) }} — {{ s.ativo ? 'Ativo' : 'Inativo' }}
-        <button type="button" :disabled="lista.enviando.value" @click="abrir(s)">Editar</button>
-        <button type="button" :disabled="lista.enviando.value" @click="alternar(s)">{{ s.ativo ? 'Inativar' : 'Ativar' }}</button>
-        <button type="button" :disabled="lista.enviando.value" @click="apagando = s.id">Apagar</button>
-        <ConfirmarAcao
-          v-if="apagando === s.id" pergunta="Apagar este serviço? Isto não pode ser desfeito." rotulo="Sim, apagar"
-          :enviando="lista.enviando.value" @voltar="apagando = null" @confirmar="apagar(s.id)"
-        />
-      </li>
+    <UiEmpty
+      v-else-if="!servicos.length" icone="servicos" titulo="Nenhum serviço ainda"
+      texto="Cadastre os serviços que você oferece para liberar o agendamento." acao="Adicionar serviço" @acao="abrir()"
+    />
+
+    <p v-else-if="!visiveis.length" class="vazio">Nenhum serviço nesta situação.</p>
+
+    <ul v-else class="grade-gestao">
+      <CartaoItem
+        v-for="s in visiveis" :key="s.id" acao-rotulo="Editar" :menu="menuDe(s)"
+        @acao="abrir(s)" @menu="id => aoMenu(s, id)"
+      >
+        <h3 class="cg-nome">{{ s.nome }}</h3>
+        <p class="cg-sec">{{ formatarDuracao(s.duracao_min) }} · {{ formatarPreco(s.preco) }}</p>
+        <template #selo>
+          <span class="distintivo-status" :data-status="s.ativo ? 'ativo' : 'inativo'">{{ s.ativo ? 'Ativo' : 'Inativo' }}</span>
+        </template>
+        <template #extra>
+          <ConfirmarAcao
+            v-if="apagando === s.id" pergunta="Apagar este serviço? Isto não pode ser desfeito." rotulo="Sim, apagar"
+            :enviando="lista.enviando.value" @voltar="apagando = null" @confirmar="apagar(s.id)"
+          />
+        </template>
+      </CartaoItem>
     </ul>
+
+    <UiSheet v-model="folha" :titulo="editando === 'novo' ? 'Novo serviço' : 'Editar serviço'">
+      <form @submit.prevent="salvar">
+        <AvisoErro v-if="envio.erro.value" :mensagem="envio.erro.value" />
+        <CampoForm id="nome" v-model="form.nome" label="Nome" required maxlength="100" data-autofocus :erros="envio.erros.value.nome" />
+        <CampoForm
+          id="duracao_min" v-model="form.duracao_min" tipo="number" label="Duração" sufixo="min" required min="1"
+          inputmode="numeric" :erros="envio.erros.value.duracao_min"
+        />
+        <CampoForm id="preco" v-model="form.preco" label="Preço" prefixo="R$" inputmode="decimal" required :erros="envio.erros.value.preco" />
+        <UiSwitch v-model="form.ativo" label="Ativo" ajuda="Serviços ativos aparecem para as clientes agendarem." />
+        <p class="acoes acoes-folha">
+          <button type="button" class="btn-secundario" :disabled="envio.enviando.value" @click="editando = null">Cancelar</button>
+          <button type="submit" :disabled="envio.enviando.value" :aria-busy="envio.enviando.value || undefined">
+            {{ envio.enviando.value ? 'Salvando…' : 'Salvar' }}
+          </button>
+        </p>
+      </form>
+    </UiSheet>
   </section>
 </template>
