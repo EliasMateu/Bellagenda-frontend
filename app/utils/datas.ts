@@ -80,3 +80,27 @@ export function dataLocalDeHoje(): string {
   const d = new Date()
   return montarYmd(d.getFullYear(), d.getMonth() + 1, d.getDate())
 }
+
+const FMT_EXTENSO = formatador({ weekday: 'long', day: 'numeric', month: 'long' })
+
+/** Ex.: "segunda-feira, 19 de outubro". */
+export function formatarDataExtenso(ymd: string): string {
+  return FMT_EXTENSO.format(utc(ymd))
+}
+
+/**
+ * Contagem relativa até o início ("hoje às 14:30", "amanhã", "em 3 dias"), calculada no fuso do próprio ISO
+ * (o ISO da API já traz o deslocamento da profissional). Retorna null se o horário já passou.
+ */
+export function contagemRelativa(iso: string, agora = Date.now()): string | null {
+  if (new Date(iso).getTime() < agora) return null
+  const m = iso.match(/([+-])(\d{2}):(\d{2})$/)
+  const deslocamento = m ? (m[1] === '-' ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0
+  const hoje = new Date(agora + deslocamento * 60000).toISOString().slice(0, 10)
+  const alvo = iso.slice(0, 10)
+  const [ya, ma, da] = partesYmd(alvo)
+  const [yb, mb, db] = partesYmd(hoje)
+  const dias = Math.round((Date.UTC(ya, ma - 1, da) - Date.UTC(yb, mb - 1, db)) / 86400000)
+  if (dias === 0) return `hoje às ${iso.slice(11, 16)}`
+  return new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' }).format(dias, 'day')
+}

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { AgendamentoCriado, HorariosResposta, Servico, ServicosResposta } from '~/composables/usePublico'
+import type { AgendamentoConsultado, HorariosResposta, Servico, ServicosResposta } from '~/composables/usePublico'
 import type { ApiError } from '~/composables/useApi'
 
-type Passo = 'servico' | 'data' | 'horario' | 'dados' | 'revisao' | 'confirmado'
+type Passo = 'servico' | 'data' | 'horario' | 'dados' | 'revisao'
 
 const slug = String(useRoute().params.slug)
 const api = usePublico(slug)
+const locais = useAgendamentosLocais(slug)
 
 const { data: carga } = await useAsyncData(`servicos-${slug}`, async () => {
   try {
@@ -29,7 +30,7 @@ const erros = ref<Record<string, string[]>>({})
 const erroGeral = ref('')
 const carregando = ref(false)
 const enviando = ref(false)
-const criado = ref<AgendamentoCriado['agendamento'] | null>(null)
+const meus = ref<{ token: string, ag: AgendamentoConsultado }[]>([])
 
 const servicos = computed<Servico[]>(() => carga.value?.dados?.servicos ?? [])
 const profissional = computed(() => carga.value?.dados?.nome_exibicao ?? '')
@@ -40,13 +41,33 @@ const titulos: Record<Passo, string> = {
   horario: '3. Escolha o horário',
   dados: '4. Seus dados',
   revisao: '5. Revise e confirme',
-  confirmado: 'Agendamento recebido',
 }
 
 onMounted(() => {
   const d = new Date()
   hoje.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  void carregarMeus()
 })
+
+const TERMINAIS = ['concluido', 'falta', 'cancelado_cliente', 'cancelado_salao']
+
+// Agendamentos feitos neste aparelho: consulta cada token e descarta os inexistentes ou já encerrados.
+async function carregarMeus() {
+  const vivos: { token: string, ag: AgendamentoConsultado }[] = []
+  for (const g of locais.ler()) {
+    try {
+      const ag = await api.consultar({ token: g.token })
+      if (TERMINAIS.includes(ag.status) || new Date(ag.fim).getTime() <= Date.now()) locais.remover(g.token)
+      else vivos.push({ token: g.token, ag })
+    }
+    catch (e) {
+      if ((e as ApiError).status === 404) locais.remover(g.token)
+    }
+  }
+  meus.value = vivos.sort((a, b) => a.ag.inicio.localeCompare(b.ag.inicio))
+}
+
+const linkMeu = (token: string) => `/p/${encodeURIComponent(slug)}/meu-agendamento#token=${encodeURIComponent(token)}`
 
 function ir(p: Passo) {
   passo.value = p
@@ -102,8 +123,12 @@ async function enviar() {
       consentimento: form.consentimento,
       website: form.website,
     })
-    criado.value = resposta.agendamento
-    ir('confirmado')
+    locais.adicionar(resposta.agendamento.token)
+    // Token só vem agora: vai no fragmento (#), fora de logs/referrer, e a página de detalhes o guarda em memória.
+    await navigateTo(
+      `/p/${encodeURIComponent(slug)}/meu-agendamento#token=${encodeURIComponent(resposta.agendamento.token)}&novo=1`,
+      { replace: true, external: true },
+    )
   }
   catch (e) {
     await tratarErro(e as ApiError)
@@ -154,7 +179,6 @@ const ROTULOS_PASSOS: { passo: Passo, rotulo: string }[] = [
   { passo: 'horario', rotulo: 'Horário' },
   { passo: 'dados', rotulo: 'Dados' },
   { passo: 'revisao', rotulo: 'Revisão' },
-  { passo: 'confirmado', rotulo: 'Pronto' },
 ]
 const indicePasso = computed(() => ROTULOS_PASSOS.findIndex(p => p.passo === passo.value))
 
@@ -170,7 +194,19 @@ function descreve(campo: string) {
     <AvisoErro :mensagem="mensagemErro(carga.erro)" />
   </main>
   <main v-else class="pagina-publica">
-    <h1>Agendar com {{ profissional }}</h1>
+    <div class="pub-cab">
+      <h1>Agendar com {{ profissional }}</h1>
+      <a :href="`/p/${encodeURIComponent(slug)}/meu-agendamento`" class="pub-meu">Meu agendamento</a>
+    </div>
+
+    <section v-for="m in meus" :key="m.token" class="cartao meu-aviso" aria-label="Seu agendamento">
+      <UiIcon nome="calendario-check" />
+      <p>
+        Você tem um agendamento:
+        <strong>{{ formatarDataExtenso(m.ag.inicio.slice(0, 10)) }} às {{ formatarIso(m.ag.inicio).hora }}</strong>
+      </p>
+      <a :href="linkMeu(m.token)" class="btn btn-secundario">Ver detalhes</a>
+    </section>
 
     <p v-if="!servicos.length" class="vazio">Nenhum serviço disponível no momento.</p>
 
@@ -183,7 +219,7 @@ function descreve(campo: string) {
           <span class="rotulo">{{ p.rotulo }}</span>
         </li>
       </ol>
-      <h2 v-if="passo !== 'confirmado'" ref="titulo" tabindex="-1">{{ titulos[passo] }}</h2>
+      <h2 ref="titulo" tabindex="-1">{{ titulos[passo] }}</h2>
       <AvisoErro v-if="erroGeral" :mensagem="erroGeral" />
 
       <!-- 1. Serviço -->
@@ -312,8 +348,6 @@ function descreve(campo: string) {
         <button type="submit" :disabled="enviando">{{ enviando ? 'Enviando…' : 'Confirmar agendamento' }}</button>
       </form>
 
-      <!-- 6. Confirmação -->
-      <AgendamentoConfirmado v-else-if="passo === 'confirmado' && criado" :slug="slug" :criado="criado" />
     </section>
   </main>
 </template>
