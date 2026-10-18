@@ -4,12 +4,12 @@ definePageMeta({ middleware: 'painel' })
 const { sessao, sair } = useSessao()
 const { configuracao } = useConfiguracao()
 const api = usePainelApi()
-const origem = useRequestURL().origin
 const route = useRoute()
+const linkPublico = useLinkPublico()
 
 const ativa = computed(() => sessao.value?.profissional?.status === 'ativa')
-const slug = computed(() => sessao.value?.profissional?.slug ?? '')
-const linkPublico = computed(() => `${origem}/p/${encodeURIComponent(slug.value)}`)
+const nome = computed(() => sessao.value?.profissional?.nome_exibicao ?? sessao.value?.username ?? '')
+const inicial = computed(() => nome.value.trim().charAt(0).toUpperCase() || '?')
 
 // O fuso da profissional vem da configuração; só chama o painel se a conta estiver ativa (senão dá 403).
 if (ativa.value && !configuracao.value) {
@@ -29,17 +29,6 @@ const MENSAGENS: Record<string, { titulo: string, texto: string }> = {
 }
 const mensagem = computed(() => MENSAGENS[sessao.value?.profissional?.status ?? ''] ?? MENSAGENS.pendente!)
 
-const copiado = ref(false)
-async function copiar() {
-  try {
-    await navigator.clipboard.writeText(linkPublico.value)
-    copiado.value = true
-  }
-  catch {
-    copiado.value = false
-  }
-}
-
 const saindo = ref(false)
 async function deslogar() {
   if (saindo.value) return
@@ -54,10 +43,30 @@ async function deslogar() {
   await navigateTo('/entrar')
 }
 
-// Menu "Mais" da navegação inferior (mobile): fecha ao navegar.
-const mais = ref<HTMLDetailsElement | null>(null)
+const itensPerfil = computed(() => [
+  ...(ativa.value
+    ? [
+        { id: 'clientes', label: 'Clientes' },
+        { id: 'bloqueios', label: 'Bloqueios' },
+        { id: 'configuracao', label: 'Configurações' },
+        { id: 'copiar', label: 'Copiar link de agendamento' },
+      ]
+    : []),
+  { id: 'sair', label: 'Sair' },
+])
+
+function aoEscolher(id: string) {
+  if (id === 'sair') void deslogar()
+  else if (id === 'copiar') void linkPublico.copiar()
+  else void navigateTo(`/painel/${id}`)
+}
+
+// Barra inferior: "Mais" abre uma folha com o restante da navegação.
+const maisAberto = ref(false)
+const secoesMais = ['/painel/bloqueios', '/painel/clientes', '/painel/configuracao']
+const maisAtivo = computed(() => secoesMais.some(p => route.path.startsWith(p)))
 watch(() => route.fullPath, () => {
-  if (mais.value) mais.value.open = false
+  maisAberto.value = false
 })
 </script>
 
@@ -73,10 +82,14 @@ watch(() => route.fullPath, () => {
         <NuxtLink to="/painel/clientes">Clientes</NuxtLink>
         <NuxtLink to="/painel/configuracao">Configurações</NuxtLink>
       </nav>
-      <div class="usuario">
-        <p>Conectada como {{ sessao.profissional?.nome_exibicao ?? sessao.username }}</p>
-        <button type="button" class="btn-secundario" :disabled="saindo" @click="deslogar">Sair</button>
-      </div>
+      <UiMenu
+        label="Perfil" :aria-label="`Perfil: ${nome}`" :title="nome" :items="itensPerfil" align="right"
+        button-class="avatar" @select="aoEscolher"
+      >
+        <template #botao>
+          <span class="avatar-inicial" aria-hidden="true">{{ inicial }}</span>
+        </template>
+      </UiMenu>
     </header>
 
     <main v-if="!sessao.profissional" class="pagina-estreita">
@@ -95,28 +108,44 @@ watch(() => route.fullPath, () => {
 
     <template v-else>
       <main class="painel-main">
-        <p class="link-publico">
-          <span>Seu link de agendamento:</span>
-          <a :href="`/p/${encodeURIComponent(slug)}`" target="_blank" rel="noopener">{{ linkPublico }}</a>
-          <button type="button" class="btn-secundario" @click="copiar">Copiar link</button>
-          <span v-if="copiado" role="status">Copiado.</span>
-        </p>
         <NuxtPage />
       </main>
 
       <nav class="nav-inferior" aria-label="Painel (menu inferior)">
-        <NuxtLink to="/painel">Agenda</NuxtLink>
-        <NuxtLink to="/painel/servicos">Serviços</NuxtLink>
-        <NuxtLink to="/painel/horarios">Horários</NuxtLink>
-        <details ref="mais" class="mais">
-          <summary>Mais</summary>
-          <div class="mais-menu">
-            <NuxtLink to="/painel/bloqueios">Bloqueios</NuxtLink>
-            <NuxtLink to="/painel/clientes">Clientes</NuxtLink>
-            <NuxtLink to="/painel/configuracao">Configurações</NuxtLink>
-          </div>
-        </details>
+        <NuxtLink to="/painel" exact-active-class="ativo">
+          <UiIcon nome="calendario" /> <span>Agenda</span>
+        </NuxtLink>
+        <NuxtLink to="/painel/servicos" active-class="ativo">
+          <UiIcon nome="servicos" /> <span>Serviços</span>
+        </NuxtLink>
+        <NuxtLink to="/painel/horarios" active-class="ativo">
+          <UiIcon nome="horarios" /> <span>Horários</span>
+        </NuxtLink>
+        <button
+          type="button" class="nav-mais" :class="{ ativo: maisAtivo }" aria-haspopup="dialog"
+          :aria-expanded="maisAberto" :aria-current="maisAtivo ? 'page' : undefined" @click="maisAberto = true"
+        >
+          <UiIcon nome="mais-opcoes" /> <span>Mais</span>
+        </button>
       </nav>
+
+      <UiSheet v-model="maisAberto" titulo="Mais opções">
+        <p class="sheet-conta"><UiIcon nome="usuario" /> {{ nome }}</p>
+        <nav aria-label="Mais opções do painel" class="lista-links">
+          <NuxtLink to="/painel/bloqueios">Bloqueios</NuxtLink>
+          <NuxtLink to="/painel/clientes">Clientes</NuxtLink>
+          <NuxtLink to="/painel/configuracao">Configurações</NuxtLink>
+        </nav>
+        <p class="acoes">
+          <button type="button" class="btn-secundario" @click="linkPublico.copiar">
+            <UiIcon :nome="linkPublico.copiado.value ? 'check' : 'copiar'" :tamanho="20" />
+            {{ linkPublico.copiado.value ? 'Copiado' : 'Copiar link de agendamento' }}
+          </button>
+          <button type="button" class="btn-secundario" :disabled="saindo" @click="deslogar">Sair</button>
+        </p>
+      </UiSheet>
     </template>
+
+    <p v-if="linkPublico.copiado.value" class="toast" role="status">Link copiado.</p>
   </div>
 </template>

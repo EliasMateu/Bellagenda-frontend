@@ -4,6 +4,7 @@ const { configuracao } = useConfiguracao()
 const carga = useEnvio()
 const envio = useEnvio()
 const salvo = ref(false)
+const linkPublico = useLinkPublico()
 
 const form = reactive({
   antecedencia_min_agendamento_h: '' as string | number,
@@ -55,6 +56,21 @@ async function salvar() {
   <section>
     <h1>Configurações</h1>
     <AvisoErro v-if="carga.erro.value" :mensagem="carga.erro.value" />
+    <div class="cartao">
+      <h2>Seu link de agendamento</h2>
+      <p class="campo">
+        <label for="link-publico">Link</label>
+        <input id="link-publico" type="text" readonly :value="linkPublico.link.value">
+      </p>
+      <p class="acoes">
+        <button type="button" class="btn-secundario" @click="linkPublico.copiar">
+          <UiIcon :nome="linkPublico.copiado.value ? 'check' : 'copiar'" :tamanho="20" />
+          {{ linkPublico.copiado.value ? 'Copiado' : 'Copiar' }}
+        </button>
+        <a :href="linkPublico.caminho.value" class="btn" target="_blank" rel="noopener">Abrir</a>
+      </p>
+      <p class="somente-leitor" role="status" aria-live="polite">{{ linkPublico.copiado.value ? 'Link copiado.' : '' }}</p>
+    </div>
     <form v-if="configuracao" class="cartao" @submit.prevent="salvar">
       <AvisoErro v-if="envio.erro.value" :mensagem="envio.erro.value" />
       <p>Fuso horário: {{ configuracao.timezone }}</p>

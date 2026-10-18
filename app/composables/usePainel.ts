@@ -225,8 +225,8 @@ export function useEnvio() {
   const erros = ref<Record<string, string[]>>({})
   const { expirou } = useSessao()
 
-  async function executar<T>(fn: () => Promise<T>): Promise<T | undefined> {
-    if (enviando.value) return undefined
+  async function executar<T>(fn: () => Promise<T>, opcoes: { concorrente?: boolean } = {}): Promise<T | undefined> {
+    if (enviando.value && !opcoes.concorrente) return undefined
     enviando.value = true
     erro.value = ''
     erros.value = {}
@@ -262,4 +262,42 @@ export function useEnvio() {
   }
 
   return { enviando, erro, erros, executar, limpar, focarPrimeiroErro }
+}
+
+// ---------------------------------------------------------------- link público de agendamento
+
+export function useLinkPublico() {
+  const { sessao } = useSessao()
+  const origem = useRequestURL().origin
+  const slug = computed(() => sessao.value?.profissional?.slug ?? '')
+  const caminho = computed(() => `/p/${encodeURIComponent(slug.value)}`)
+  const link = computed(() => `${origem}${caminho.value}`)
+  const copiado = ref(false)
+  // navigator.share só existe em alguns navegadores/dispositivos: o botão só aparece se houver.
+  const podeCompartilhar = ref(false)
+  onMounted(() => {
+    podeCompartilhar.value = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+  })
+
+  let relogio: ReturnType<typeof setTimeout> | undefined
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(link.value)
+      copiado.value = true
+      clearTimeout(relogio)
+      relogio = setTimeout(() => (copiado.value = false), 3000)
+    }
+    catch {
+      copiado.value = false
+    }
+  }
+
+  async function compartilhar() {
+    try {
+      await navigator.share({ title: 'Bela Agenda', text: 'Agende seu horário:', url: link.value })
+    }
+    catch { /* cancelado pelo usuário */ }
+  }
+
+  return { link, caminho, copiado, copiar, podeCompartilhar, compartilhar }
 }

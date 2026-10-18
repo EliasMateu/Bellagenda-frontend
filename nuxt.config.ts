@@ -6,7 +6,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-10-17',
   devtools: { enabled: false },
   typescript: { strict: true },
-  css: ['~/assets/css/tokens.css', '~/assets/css/base.css'],
+  css: ['~/assets/css/tokens.css', '~/assets/css/base.css', '~/assets/css/ui.css'],
   app: {
     head: {
       htmlAttrs: { lang: 'pt-BR' },

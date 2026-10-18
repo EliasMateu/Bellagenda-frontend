@@ -205,7 +205,7 @@ function descreve(campo: string) {
         <p>Serviço: {{ servico?.nome }}</p>
         <p class="campo">
           <label for="campo-data">Data</label>
-          <input id="campo-data" v-model="data" type="date" :min="hoje || undefined" required>
+          <UiDatePicker id="campo-data" v-model="data" :min="hoje || undefined" label="Escolher data" />
         </p>
         <button type="button" @click="ir('servico')">Voltar</button>
         <button type="submit" :disabled="carregando || !data">Ver horários</button>

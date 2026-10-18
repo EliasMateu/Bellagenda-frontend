@@ -9,7 +9,8 @@ const envio = useEnvio()
 const horarios = ref<HorarioTrabalho[]>([])
 const editando = ref<number | 'novo' | null>(null)
 const apagando = ref<number | null>(null)
-const form = reactive({ dia_semana: '0' as string | number, inicio: '09:00', fim: '18:00' })
+const opcoesDias = DIAS_SEMANA.map((nome, i) => ({ value: i, label: nome }))
+const form = reactive({ dia_semana: 0 as string | number, inicio: '09:00', fim: '18:00' })
 
 const porDia = computed(() =>
   DIAS_SEMANA.map((nome, dia) => ({ nome, dia, faixas: horarios.value.filter(h => h.dia_semana === dia) })),
@@ -63,11 +64,9 @@ onMounted(carregar)
     <form v-if="editando !== null" class="cartao" @submit.prevent="salvar">
       <h2>{{ editando === 'novo' ? 'Nova faixa' : 'Editar faixa' }}</h2>
       <AvisoErro v-if="envio.erro.value" :mensagem="envio.erro.value" />
-      <CampoForm id="dia_semana" v-model="form.dia_semana" tipo="select" label="Dia da semana" :erros="envio.erros.value.dia_semana">
-        <option v-for="(nome, i) in DIAS_SEMANA" :key="i" :value="i">{{ nome }}</option>
-      </CampoForm>
-      <CampoForm id="inicio" v-model="form.inicio" tipo="time" label="Início" required :erros="envio.erros.value.inicio" />
-      <CampoForm id="fim" v-model="form.fim" tipo="time" label="Fim" required :erros="envio.erros.value.fim" />
+      <CampoForm id="dia_semana" v-model="form.dia_semana" tipo="select" label="Dia da semana" :options="opcoesDias" :erros="envio.erros.value.dia_semana" />
+      <CampoForm id="inicio" v-model="form.inicio" tipo="time" label="Início" :erros="envio.erros.value.inicio" />
+      <CampoForm id="fim" v-model="form.fim" tipo="time" label="Fim" :erros="envio.erros.value.fim" />
       <button type="button" :disabled="envio.enviando.value" @click="editando = null">Cancelar</button>
       <button type="submit" :disabled="envio.enviando.value">{{ envio.enviando.value ? 'Salvando…' : 'Salvar' }}</button>
     </form>
