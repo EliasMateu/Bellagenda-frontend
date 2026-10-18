@@ -117,7 +117,6 @@ onMounted(carregar)
     <UiEmpty
       v-else-if="!bloqueios.length" icone="calendario" titulo="Nenhum bloqueio"
       texto="Bloqueie folgas, férias ou compromissos para não receber agendamentos nesses períodos."
-      acao="Novo bloqueio" @acao="abrir()"
     />
 
     <p v-else-if="!visiveis.length" class="vazio">

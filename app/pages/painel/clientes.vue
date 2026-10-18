@@ -87,7 +87,7 @@ onMounted(carregar)
     />
     <UiEmpty
       v-else-if="!clientes.length" icone="usuario" titulo="Nenhuma cliente ainda"
-      texto="As clientes aparecem aqui quando agendam, ou você pode cadastrá-las." acao="Nova cliente" @acao="abrir()"
+      texto="As clientes aparecem aqui quando agendam, ou você pode cadastrá-las."
     />
 
     <ul v-else class="grade-gestao">
