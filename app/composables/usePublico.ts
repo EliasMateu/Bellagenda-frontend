@@ -50,10 +50,12 @@ export interface AgendamentoConsultado {
   cliente: { nome: string, telefone: string }
   cancelamento_ate: string
   pode_cancelar: boolean
+  /** Telefone da profissional (novo campo do backend); ausente ou null = sem botão de WhatsApp. */
+  profissional_telefone?: string | null
 }
 
-/** Identifica o agendamento: token OU código + telefone. */
-export type Identificacao = { token: string } | { codigo: string, telefone: string }
+/** A cliente identifica o agendamento só pelo token (código + telefone saiu da interface). */
+export interface Identificacao { token: string }
 
 const STATUS: Record<string, string> = {
   pendente: 'Pendente (aguardando confirmação da profissional)',

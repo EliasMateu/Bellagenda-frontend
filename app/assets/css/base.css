@@ -459,18 +459,6 @@ dd { margin: 0; overflow-wrap: anywhere; }
   }
 }
 
-/* destaque do código de confirmação */
-.codigo-destaque {
-  display: inline-block;
-  margin: 0 0 var(--e4);
-  padding: var(--e2) var(--e4);
-  border: 2px solid var(--primaria);
-  border-radius: var(--raio);
-  font-size: 1.75rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-}
-
 /* ---------- animações discretas ---------- */
 .passo,
 main ul > li,
