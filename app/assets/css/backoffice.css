@@ -1,0 +1,68 @@
+/* Backoffice (/backoffice): contas das profissionais. Só tokens validados. */
+
+.bo-main { padding-bottom: var(--e10); }
+
+/* filtros por situação: botões em pílula que quebram de linha (sem rolagem horizontal) */
+.bo-filtros { display: flex; flex-wrap: wrap; gap: var(--e2); margin-bottom: var(--e3); }
+.bo-filtro {
+  display: inline-block;
+  height: var(--alvo);
+  padding: 0 var(--e4);
+  background: var(--superficie);
+  border-radius: 999px;
+  line-height: 42px;
+  white-space: nowrap;
+}
+.bo-filtro[aria-pressed='true'] { background: var(--primaria); color: var(--on-primaria); border-color: var(--primaria); }
+.bo-filtro[aria-pressed='true']:hover { background: var(--primaria-hover); color: var(--on-primaria); }
+.bo-filtro[data-destaque]::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: var(--e2);
+  vertical-align: 1px;
+  background: var(--aviso);
+  border-radius: 50%;
+}
+.bo-filtro[data-destaque][aria-pressed='true']::before { background: var(--on-primaria); }
+
+/* feedback das ações (região aria-live sempre presente) */
+.bo-msg { margin: 0 0 var(--e3); padding: var(--e2) var(--e3); background: var(--superficie); border: 1px solid currentcolor; border-radius: var(--raio-menor); font-weight: 600; }
+.bo-msg:empty { margin: 0; padding: 0; border: 0; }
+.bo-msg[data-tom='ok'] { color: var(--sucesso); }
+.bo-msg[data-tom='ok']:not(:empty)::before { content: '\2714\FE0E\00a0'; }
+.bo-msg[data-tom='aviso'] { color: var(--aviso); }
+.bo-msg[data-tom='aviso']:not(:empty)::before { content: '\26A0\FE0E\00a0'; }
+
+.esqueleto-conta { height: 190px; }
+
+/* cartão da conta */
+.conta-card .cg-cab { align-items: flex-start; gap: var(--e3); }
+.conta-card .avatar-cliente { margin-top: 2px; }
+.conta-selo { margin: var(--e1) 0 var(--e2); }
+.conta-selo .distintivo-status { font-size: 0.8125rem; }
+.conta-acoes + .conta-sec { margin-top: var(--e2); padding-top: 0; border-top: 0; }
+.conta-sec > .btn-icone { flex: none; }
+
+/* situações */
+.distintivo-status[data-status='ativa'] { color: var(--sucesso); }
+.distintivo-status[data-status='ativa']::before { content: '\2714\FE0E'; }
+.distintivo-status[data-status='suspensa'] { color: var(--texto-suave); }
+.distintivo-status[data-status='suspensa']::before { content: '\2016'; font-weight: 700; }
+.distintivo-status[data-status='rejeitada'] { color: var(--erro); }
+.distintivo-status[data-status='rejeitada']::before { content: '\2716\FE0E'; }
+
+/* folha de detalhes */
+.bo-detalhes { display: block; margin: 0 0 var(--e4); }
+.bo-detalhes > div { padding: var(--e2) 0; border-bottom: 1px solid var(--borda); }
+.bo-detalhes > div:first-child { padding-top: 0; }
+.bo-detalhes dt { color: var(--texto-suave); font-size: 0.8125rem; font-weight: 600; }
+.bo-detalhes dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.bo-link { display: flex; align-items: center; justify-content: space-between; gap: var(--e3); }
+.bo-link span { min-width: 0; }
+.bo-link button { flex: none; height: var(--alvo); padding: 0 var(--e3); }
+.bo-alvo { margin-bottom: var(--e3); overflow-wrap: anywhere; }
+.acoes-folha > .btn,
+.acoes-folha > .btn-primario,
+.acoes-folha > .btn-perigo { flex: 1 1 120px; min-width: 0; height: var(--alvo); padding: 0 var(--e3); }
