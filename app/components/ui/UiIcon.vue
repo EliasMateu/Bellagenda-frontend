@@ -3,7 +3,7 @@
 export type NomeIcone =
   | 'calendario' | 'mais' | 'menu' | 'compartilhar' | 'copiar' | 'check' | 'chevron-esquerda'
   | 'chevron-direita' | 'chevron-baixo' | 'relogio' | 'usuario' | 'whatsapp' | 'servicos'
-  | 'horarios' | 'calendario-check' | 'seta-direita' | 'agenda-relogio' | 'mais-opcoes' | 'filtro' | 'fechar' | 'alerta' | 'agenda-vazia'
+  | 'horarios' | 'calendario-check' | 'lupa' | 'seta-direita' | 'agenda-relogio' | 'mais-opcoes' | 'filtro' | 'fechar' | 'alerta' | 'agenda-vazia'
 
 const RELOGIO = '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'
 const CALENDARIO = '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'
@@ -24,6 +24,7 @@ const FORMAS: Record<NomeIcone, string> = {
   'servicos': '<circle cx="6.5" cy="17.5" r="2.5"/><circle cx="6.5" cy="6.5" r="2.5"/><path d="M8.5 8l11 9M8.5 16l11-9"/>',
   'horarios': RELOGIO,
   'calendario-check': `${CALENDARIO}<path d="M9.5 15l1.7 1.7 3.3-3.4"/>`,
+  'lupa': '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
   'seta-direita': '<path d="M5 12h14M13 6l6 6-6 6"/>',
   'agenda-relogio': `<rect x="3.5" y="5" width="15" height="14" rx="2.5"/><path d="M3.5 10h15M8 3v4M14 3v4M7.5 13h.01M11 13h.01M7.5 16.5h.01"/><circle cx="17.5" cy="17.5" r="4" fill="var(--superficie)"/><path d="M17.5 15.5v2l1.3.8"/>`,
   'mais-opcoes': '<circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/>',

@@ -306,7 +306,6 @@ main ul > li {
   border: 1px solid var(--borda);
   border-radius: var(--raio);
 }
-li.linha > button { margin: var(--e2) var(--e2) 0 0; }
 
 /* detalhes (dl) */
 dl {
