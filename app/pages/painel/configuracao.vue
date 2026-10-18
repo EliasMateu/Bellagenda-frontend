@@ -121,7 +121,7 @@ async function salvar() {
         <h2>Confirmação</h2>
         <UiSwitch
           v-model="form.confirmacao_automatica" label="Confirmar agendamentos online automaticamente"
-          ajuda="Desligado: cada agendamento fica pendente até você confirmar."
+          :ajuda="form.confirmacao_automatica ? 'Ligado: os agendamentos feitos pelo link já entram confirmados.' : 'Desligado: cada agendamento fica pendente até você confirmar.'"
         />
       </div>
 

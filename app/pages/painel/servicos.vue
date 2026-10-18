@@ -122,7 +122,7 @@ onMounted(carregar)
 
     <UiEmpty
       v-else-if="!servicos.length" icone="servicos" titulo="Nenhum serviço ainda"
-      texto="Cadastre os serviços que você oferece para liberar o agendamento." acao="Adicionar serviço" @acao="abrir()"
+      texto="Cadastre os serviços que você oferece para liberar o agendamento."
     />
 
     <p v-else-if="!visiveis.length" class="vazio">Nenhum serviço nesta situação.</p>
