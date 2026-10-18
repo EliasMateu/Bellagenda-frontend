@@ -51,7 +51,7 @@ onMounted(carregar)
   <section>
     <h1>Agenda</h1>
     <form @submit.prevent="carregar">
-      <p>
+      <p class="seletor-data">
         <button type="button" @click="data = somarDias(data, -7)">Semana anterior</button>
         <label for="campo-data">Data</label>
         <input id="campo-data" v-model="data" type="date" required>
@@ -65,12 +65,16 @@ onMounted(carregar)
     </form>
     <p>Semana de {{ formatarNoFuso(`${segunda}T12:00:00Z`, 'UTC').data }} a {{ formatarNoFuso(`${domingo}T12:00:00Z`, 'UTC').data }} (fuso {{ fuso }})</p>
 
-    <p><button type="button" @click="criando = !criando">{{ criando ? 'Fechar formulário' : 'Novo agendamento no balcão' }}</button></p>
+    <p><button type="button" class="btn-primario" @click="criando = !criando">{{ criando ? 'Fechar formulário' : 'Novo agendamento no balcão' }}</button></p>
     <FormAgendamentoManual v-if="criando" :fuso="fuso" @criado="criado" @fechar="criando = false" />
 
     <AvisoErro v-if="carga.erro.value" :mensagem="carga.erro.value" />
-    <p v-if="carga.enviando.value" role="status">Carregando…</p>
-    <p v-else-if="!itens.length && !carga.erro.value">Nenhum agendamento nesta semana.</p>
+    <div v-if="carga.enviando.value" role="status">
+      <p>Carregando…</p>
+      <div class="esqueleto" aria-hidden="true" />
+      <div class="esqueleto" aria-hidden="true" />
+    </div>
+    <p v-else-if="!itens.length && !carga.erro.value" class="vazio">Nenhum agendamento nesta semana.</p>
 
     <section v-for="[dia, lista] in porDia" :key="dia">
       <h2>{{ dia }}</h2>

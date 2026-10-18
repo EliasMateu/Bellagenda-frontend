@@ -5,6 +5,7 @@ const { sessao, sair } = useSessao()
 const { configuracao } = useConfiguracao()
 const api = usePainelApi()
 const origem = useRequestURL().origin
+const route = useRoute()
 
 const ativa = computed(() => sessao.value?.profissional?.status === 'ativa')
 const slug = computed(() => sessao.value?.profissional?.slug ?? '')
@@ -52,45 +53,70 @@ async function deslogar() {
   }
   await navigateTo('/entrar')
 }
+
+// Menu "Mais" da navegação inferior (mobile): fecha ao navegar.
+const mais = ref<HTMLDetailsElement | null>(null)
+watch(() => route.fullPath, () => {
+  if (mais.value) mais.value.open = false
+})
 </script>
 
 <template>
-  <div v-if="sessao">
-    <header>
-      <p>Conectada como {{ sessao.profissional?.nome_exibicao ?? sessao.username }}</p>
-      <button type="button" :disabled="saindo" @click="deslogar">Sair</button>
+  <div v-if="sessao" class="painel">
+    <header class="painel-topo">
+      <p class="marca">Bela Agenda</p>
+      <nav v-if="ativa" class="nav-topo" aria-label="Painel">
+        <NuxtLink to="/painel">Agenda</NuxtLink>
+        <NuxtLink to="/painel/servicos">Serviços</NuxtLink>
+        <NuxtLink to="/painel/horarios">Horários</NuxtLink>
+        <NuxtLink to="/painel/bloqueios">Bloqueios</NuxtLink>
+        <NuxtLink to="/painel/clientes">Clientes</NuxtLink>
+        <NuxtLink to="/painel/configuracao">Configurações</NuxtLink>
+      </nav>
+      <div class="usuario">
+        <p>Conectada como {{ sessao.profissional?.nome_exibicao ?? sessao.username }}</p>
+        <button type="button" class="btn-secundario" :disabled="saindo" @click="deslogar">Sair</button>
+      </div>
     </header>
 
-    <main v-if="!sessao.profissional">
-      <h1>Sem perfil de profissional</h1>
-      <p>Este usuário não tem perfil de profissional. O backoffice da plataforma é feito pelo admin do Django.</p>
+    <main v-if="!sessao.profissional" class="pagina-estreita">
+      <section class="cartao">
+        <h1>Sem perfil de profissional</h1>
+        <p class="aviso">Este usuário não tem perfil de profissional. O backoffice da plataforma é feito pelo admin do Django.</p>
+      </section>
     </main>
 
-    <main v-else-if="!ativa">
-      <h1>{{ mensagem.titulo }}</h1>
-      <p>{{ mensagem.texto }}</p>
+    <main v-else-if="!ativa" class="pagina-estreita">
+      <section class="cartao">
+        <h1>{{ mensagem.titulo }}</h1>
+        <p class="aviso">{{ mensagem.texto }}</p>
+      </section>
     </main>
 
     <template v-else>
-      <nav aria-label="Painel">
-        <ul>
-          <li><NuxtLink to="/painel">Agenda</NuxtLink></li>
-          <li><NuxtLink to="/painel/servicos">Serviços</NuxtLink></li>
-          <li><NuxtLink to="/painel/horarios">Horários</NuxtLink></li>
-          <li><NuxtLink to="/painel/bloqueios">Bloqueios</NuxtLink></li>
-          <li><NuxtLink to="/painel/clientes">Clientes</NuxtLink></li>
-          <li><NuxtLink to="/painel/configuracao">Configurações</NuxtLink></li>
-        </ul>
-        <p>
-          Seu link de agendamento:
+      <main class="painel-main">
+        <p class="link-publico">
+          <span>Seu link de agendamento:</span>
           <a :href="`/p/${encodeURIComponent(slug)}`" target="_blank" rel="noopener">{{ linkPublico }}</a>
-          <button type="button" @click="copiar">Copiar link</button>
+          <button type="button" class="btn-secundario" @click="copiar">Copiar link</button>
           <span v-if="copiado" role="status">Copiado.</span>
         </p>
-      </nav>
-      <main>
         <NuxtPage />
       </main>
+
+      <nav class="nav-inferior" aria-label="Painel (menu inferior)">
+        <NuxtLink to="/painel">Agenda</NuxtLink>
+        <NuxtLink to="/painel/servicos">Serviços</NuxtLink>
+        <NuxtLink to="/painel/horarios">Horários</NuxtLink>
+        <details ref="mais" class="mais">
+          <summary>Mais</summary>
+          <div class="mais-menu">
+            <NuxtLink to="/painel/bloqueios">Bloqueios</NuxtLink>
+            <NuxtLink to="/painel/clientes">Clientes</NuxtLink>
+            <NuxtLink to="/painel/configuracao">Configurações</NuxtLink>
+          </div>
+        </details>
+      </nav>
     </template>
   </div>
 </template>

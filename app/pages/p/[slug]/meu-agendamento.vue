@@ -90,17 +90,17 @@ async function cancelar() {
 </script>
 
 <template>
-  <main>
+  <main class="pagina-publica">
     <h1>Meu agendamento</h1>
     <AvisoErro v-if="erro" :mensagem="erro" />
 
-    <form v-if="!agendamento" @submit.prevent="consultarPorCodigo">
+    <form v-if="!agendamento" class="cartao" @submit.prevent="consultarPorCodigo">
       <p>Informe o código recebido e o telefone usado no agendamento.</p>
-      <p>
+      <p class="campo">
         <label for="campo-codigo">Código</label>
         <input id="campo-codigo" v-model="form.codigo" type="text" name="codigo" autocomplete="off" required maxlength="20">
       </p>
-      <p>
+      <p class="campo">
         <label for="campo-telefone">WhatsApp (com DDD)</label>
         <input
           id="campo-telefone" v-model="form.telefone" type="tel" inputmode="tel" name="telefone"
@@ -110,7 +110,7 @@ async function cancelar() {
       <button type="submit" :disabled="carregando">{{ carregando ? 'Consultando…' : 'Consultar' }}</button>
     </form>
 
-    <section v-else>
+    <section v-else class="cartao">
       <h2 ref="titulo" tabindex="-1">{{ cancelado ? 'Agendamento cancelado' : 'Dados do agendamento' }}</h2>
       <AgendamentoDetalhes
         :servico="agendamento.servico.nome"
@@ -130,13 +130,15 @@ async function cancelar() {
       </dl>
 
       <template v-if="!cancelado">
-        <p v-if="!agendamento.pode_cancelar">Este agendamento não pode mais ser cancelado por aqui.</p>
-        <button v-else-if="!confirmando" type="button" @click="pedirConfirmacao">Cancelar agendamento</button>
-        <div v-else role="group" aria-labelledby="titulo-confirmacao">
+        <p v-if="!agendamento.pode_cancelar" class="aviso">Este agendamento não pode mais ser cancelado por aqui.</p>
+        <p v-else-if="!confirmando"><button type="button" class="btn-perigo" @click="pedirConfirmacao">Cancelar agendamento</button></p>
+        <div v-else class="confirmacao" role="group" aria-labelledby="titulo-confirmacao">
           <h3 id="titulo-confirmacao" ref="tituloConfirmacao" tabindex="-1">Confirmar cancelamento</h3>
           <p>Tem certeza que deseja cancelar este agendamento? Esta ação não pode ser desfeita.</p>
-          <button type="button" :disabled="carregando" @click="confirmando = false">Voltar</button>
-          <button type="button" :disabled="carregando" @click="cancelar">Sim, cancelar agendamento</button>
+          <p>
+            <button type="button" class="btn-secundario" :disabled="carregando" @click="confirmando = false">Voltar</button>
+            <button type="button" class="btn-perigo" :disabled="carregando" @click="cancelar">Sim, cancelar agendamento</button>
+          </p>
         </div>
       </template>
       <p v-else role="status">Seu agendamento foi cancelado.</p>

@@ -13,13 +13,13 @@ async function enviar() {
 </script>
 
 <template>
-  <main>
-    <h1>Entrar</h1>
-    <form @submit.prevent="enviar">
+  <main class="pagina-estreita">
+    <form class="cartao" @submit.prevent="enviar">
+      <h1>Entrar</h1>
       <AvisoErro v-if="erro" :mensagem="erro" />
       <CampoForm id="username" v-model="form.username" label="Usuário" autocomplete="username" required :erros="erros.username" />
       <CampoForm id="password" v-model="form.password" tipo="password" label="Senha" autocomplete="current-password" required :erros="erros.password" />
-      <button type="submit" :disabled="enviando">{{ enviando ? 'Entrando…' : 'Entrar' }}</button>
+      <button type="submit" class="botao-largo" :disabled="enviando">{{ enviando ? 'Entrando…' : 'Entrar' }}</button>
     </form>
   </main>
 </template>

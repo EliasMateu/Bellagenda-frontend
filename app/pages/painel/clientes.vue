@@ -49,7 +49,7 @@ onMounted(carregar)
     <AvisoErro v-if="carga.erro.value" :mensagem="carga.erro.value" />
     <p><button type="button" @click="abrir()">Nova cliente</button></p>
 
-    <form v-if="editando !== null" @submit.prevent="salvar">
+    <form v-if="editando !== null" class="cartao" @submit.prevent="salvar">
       <h2>{{ editando === 'novo' ? 'Nova cliente' : 'Editar cliente' }}</h2>
       <AvisoErro v-if="envio.erro.value" :mensagem="envio.erro.value" />
       <CampoForm id="nome" v-model="form.nome" label="Nome" required maxlength="100" :erros="envio.erros.value.nome" />
@@ -59,9 +59,9 @@ onMounted(carregar)
       <button type="submit" :disabled="envio.enviando.value">{{ envio.enviando.value ? 'Salvando…' : 'Salvar' }}</button>
     </form>
 
-    <p v-if="!clientes.length && !carga.enviando.value">Nenhuma cliente encontrada.</p>
+    <p v-if="!clientes.length && !carga.enviando.value" class="vazio">Nenhuma cliente encontrada.</p>
     <ul>
-      <li v-for="c in clientes" :key="c.id">
+      <li v-for="c in clientes" :key="c.id" class="linha">
         {{ c.nome }} — {{ c.telefone }}
         <span v-if="c.observacoes"> — {{ c.observacoes }}</span>
         <button type="button" @click="abrir(c)">Ver / editar</button>
