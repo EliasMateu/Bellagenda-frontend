@@ -9,7 +9,9 @@ const linkPublico = useLinkPublico()
 
 const ativa = computed(() => sessao.value?.profissional?.status === 'ativa')
 const nome = computed(() => sessao.value?.profissional?.nome_exibicao ?? sessao.value?.username ?? '')
-const inicial = computed(() => nome.value.trim().charAt(0).toUpperCase() || '?')
+const palavras = computed(() => nome.value.trim().split(/\s+/).filter(Boolean))
+const iniciais = computed(() => palavras.value.slice(0, 2).map(p => p.charAt(0).toUpperCase()).join('') || '?')
+const primeiroNome = computed(() => palavras.value[0] ?? '')
 
 // O fuso da profissional vem da configuração; só chama o painel se a conta estiver ativa (senão dá 403).
 if (ativa.value && !configuracao.value) {
@@ -84,10 +86,12 @@ watch(() => route.fullPath, () => {
       </nav>
       <UiMenu
         label="Perfil" :aria-label="`Perfil: ${nome}`" :title="nome" :items="itensPerfil" align="right"
-        button-class="avatar" @select="aoEscolher"
+        button-class="perfil-botao" @select="aoEscolher"
       >
-        <template #botao>
-          <span class="avatar-inicial" aria-hidden="true">{{ inicial }}</span>
+        <template #botao="{ aberto }">
+          <span class="avatar-circulo" aria-hidden="true">{{ iniciais }}</span>
+          <span class="perfil-nome" aria-hidden="true">{{ primeiroNome }}</span>
+          <UiIcon nome="chevron-baixo" :tamanho="22" class="perfil-chevron" :class="{ girado: aberto }" />
         </template>
       </UiMenu>
     </header>

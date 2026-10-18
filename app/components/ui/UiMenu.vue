@@ -102,7 +102,7 @@ async function escolher(item: UiMenuItem) {
       aria-haspopup="menu" :aria-expanded="aberto" :aria-controls="aberto ? idMenu : undefined"
       :aria-label="ariaLabel" @click="aoClicarBotao" @keydown="aoTeclarBotao"
     >
-      <slot name="botao">
+      <slot name="botao" :aberto="aberto">
         {{ label }} <UiIcon nome="chevron-baixo" :tamanho="18" />
       </slot>
     </button>

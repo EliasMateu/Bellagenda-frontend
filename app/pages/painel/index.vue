@@ -3,8 +3,8 @@ import type { AgendamentoPainel } from '~/composables/usePainel'
 
 const api = usePainelApi()
 const { fuso } = useConfiguracao()
+const { sessao } = useSessao()
 const cargaLista = useEnvio()
-const cargaMarcas = useEnvio()
 const compartilhar = useLinkPublico()
 
 type Modo = 'dia' | 'semana'
@@ -23,12 +23,13 @@ const modo = ref<Modo>('dia')
 const dia = ref(hojeNoFuso(fuso.value))
 const filtro = ref('')
 const itens = ref<AgendamentoPainel[]>([])
-const semana = ref<AgendamentoPainel[]>([])
 const iniciou = ref(false)
 const criando = ref(false)
 const compartilhando = ref(false)
+const filtrosAbertos = ref(false)
 const pendentes = ref(0)
 
+const nomeProfissional = computed(() => sessao.value?.profissional?.nome_exibicao ?? '')
 const hoje = computed(() => hojeNoFuso(fuso.value))
 const domingo = computed(() => domingoDaSemana(dia.value))
 const periodo = computed(() =>
@@ -39,8 +40,9 @@ const periodo = computed(() =>
 
 const dm = (ymd: string) => {
   const [, d = '', mes = ''] = formatarDataCurta(ymd).split(' ')
-  return { d, mes }
+  return { d, mes: `${mes}.` }
 }
+// Dia: "Dom, 18 out"; Semana: "12–18 out. 2026".
 const textoPeriodo = computed(() => {
   if (modo.value === 'dia') {
     const [sem = '', d = '', mes = ''] = formatarDataCurta(dia.value).split(' ')
@@ -48,7 +50,8 @@ const textoPeriodo = computed(() => {
   }
   const a = dm(periodo.value.de)
   const b = dm(periodo.value.ate)
-  return a.mes === b.mes ? `${a.d} a ${b.d} ${b.mes}` : `${a.d} ${a.mes} a ${b.d} ${b.mes}`
+  const ano = partesYmd(periodo.value.ate)[0]
+  return a.mes === b.mes ? `${a.d}–${b.d} ${b.mes} ${ano}` : `${a.d} ${a.mes} – ${b.d} ${b.mes} ${ano}`
 })
 const passo = computed(() => (modo.value === 'dia' ? 1 : 7))
 
@@ -66,34 +69,6 @@ async function carregarLista() {
   iniciou.value = true
 }
 
-let seqMarcas = 0
-async function carregarMarcas() {
-  const meu = ++seqMarcas
-  const lista = await cargaMarcas.executar(
-    () => api.agendamentos.listar({ de: domingo.value, ate: somarDias(domingo.value, 6) }),
-    { concorrente: true },
-  )
-  if (lista && meu === seqMarcas) semana.value = lista
-}
-
-const marcados = computed(() => [
-  ...new Set(
-    semana.value
-      .filter(a => !a.status.startsWith('cancelado'))
-      .map(a => paraLocal(a.inicio, fuso.value).slice(0, 10)),
-  ),
-])
-
-const proximo = computed(() => {
-  if (modo.value !== 'dia' || dia.value !== hoje.value) return null
-  const agora = Date.now()
-  return semana.value.find(a =>
-    (a.status === 'pendente' || a.status === 'confirmado')
-    && new Date(a.inicio).getTime() > agora
-    && paraLocal(a.inicio, fuso.value).slice(0, 10) === dia.value,
-  ) ?? null
-})
-
 const porDia = computed(() => {
   const grupos = new Map<string, AgendamentoPainel[]>()
   for (const a of itens.value) {
@@ -104,7 +79,7 @@ const porDia = computed(() => {
 })
 
 const carregando = computed(() => !iniciou.value || (pendentes.value > 0 && !itens.value.length))
-const filtroAtivo = computed(() => FILTROS.find(f => f.valor === filtro.value))
+const filtroAtivo = computed(() => FILTROS.find(f => f.valor === filtro.value && f.valor !== ''))
 
 function mover(sinal: 1 | -1) {
   dia.value = somarDias(dia.value, sinal * passo.value)
@@ -113,7 +88,6 @@ function mover(sinal: 1 | -1) {
 function atualizado(novo: AgendamentoPainel) {
   itens.value = itens.value.map(a => (a.id === novo.id ? novo : a))
   void carregarLista()
-  void carregarMarcas()
 }
 
 function criado(novo: AgendamentoPainel) {
@@ -121,43 +95,50 @@ function criado(novo: AgendamentoPainel) {
   const alvo = paraLocal(novo.inicio, fuso.value).slice(0, 10)
   if (alvo < periodo.value.de || alvo > periodo.value.ate) dia.value = alvo
   else void carregarLista()
-  void carregarMarcas()
+}
+
+function aplicarFiltro() {
+  filtrosAbertos.value = false
+}
+function limparFiltro() {
+  filtro.value = ''
+  filtrosAbertos.value = false
 }
 
 watch([modo, () => periodo.value.de, () => periodo.value.ate, filtro], () => {
   itens.value = []
   void carregarLista()
 })
-watch(() => domingo.value, () => void carregarMarcas())
 onMounted(() => {
   void carregarLista()
-  void carregarMarcas()
 })
 </script>
 
 <template>
   <section class="agenda">
-    <div class="agenda-titulo">
-      <h1>Agenda</h1>
-      <button type="button" class="btn-secundario btn-compacto" @click="compartilhando = true">
-        <UiIcon nome="compartilhar" :tamanho="20" /> Compartilhar
+    <div class="agenda-identidade">
+      <p class="nome-prof">{{ nomeProfissional }}</p>
+      <button
+        type="button" class="btn-secundario btn-compacto" aria-label="Compartilhar agenda"
+        @click="compartilhando = true"
+      >
+        <UiIcon nome="compartilhar" :tamanho="20" /> <span>Compartilhar<span class="texto-longo"> agenda</span></span>
       </button>
     </div>
 
-    <div class="segmentado" role="group" aria-label="Período">
-      <button type="button" :aria-pressed="modo === 'dia'" @click="modo = 'dia'">Dia</button>
-      <button type="button" :aria-pressed="modo === 'semana'" @click="modo = 'semana'">Semana</button>
-    </div>
+    <h1 class="agenda-h1">Agenda</h1>
 
     <div class="agenda-periodo">
       <button type="button" class="btn-icone" :aria-label="modo === 'dia' ? 'Dia anterior' : 'Semana anterior'" @click="mover(-1)">
         <UiIcon nome="chevron-esquerda" />
       </button>
-      <p class="periodo-texto" aria-live="polite">{{ textoPeriodo }}</p>
+      <UiDatePicker
+        v-model="dia" variant="pilula" :today="hoje" label="Escolher data" aria-label="Escolher data"
+        :display-text="textoPeriodo"
+      />
       <button type="button" class="btn-icone" :aria-label="modo === 'dia' ? 'Próximo dia' : 'Próxima semana'" @click="mover(1)">
         <UiIcon nome="chevron-direita" />
       </button>
-      <UiDatePicker v-model="dia" variant="compacto" :today="hoje" label="Escolher data" aria-label="Escolher data" />
       <button
         type="button" class="btn-secundario btn-hoje" :disabled="dia === hoje" aria-label="Ir para hoje"
         title="Ir para hoje" @click="dia = hoje"
@@ -166,28 +147,31 @@ onMounted(() => {
       </button>
     </div>
 
-    <UiWeekStrip v-if="modo === 'dia'" v-model="dia" :marked="marcados" :today="hoje" />
+    <div class="segmentado" role="group" aria-label="Período">
+      <button type="button" :aria-pressed="modo === 'semana'" @click="modo = 'semana'">Semana</button>
+      <button type="button" :aria-pressed="modo === 'dia'" @click="modo = 'dia'">Dia</button>
+    </div>
 
-    <div class="filtros" role="group" aria-label="Filtrar por situação">
+    <div class="filtros-linha">
       <button
-        v-for="f in FILTROS" :key="f.valor" type="button" class="filtro" :aria-pressed="filtro === f.valor"
-        @click="filtro = f.valor"
+        type="button" class="btn-secundario btn-filtros" :class="{ ativo: !!filtroAtivo }" aria-haspopup="dialog"
+        :aria-expanded="filtrosAbertos" @click="filtrosAbertos = true"
       >
-        {{ f.rotulo }}
+        <UiIcon nome="filtro" :tamanho="20" />
+        <span class="filtros-texto">{{ filtroAtivo ? `Filtros: ${filtroAtivo.rotulo}` : 'Filtros' }}</span>
+        <span v-if="filtroAtivo" class="filtro-indicador" aria-hidden="true" />
+      </button>
+      <button
+        v-if="filtroAtivo" type="button" class="btn-icone btn-secundario" aria-label="Limpar filtro" title="Limpar filtro"
+        @click="filtro = ''"
+      >
+        <UiIcon nome="fechar" :tamanho="20" />
       </button>
     </div>
 
     <button type="button" class="btn-primario btn-largo" @click="criando = true">
       <UiIcon nome="mais" /> Novo agendamento
     </button>
-
-    <div v-if="proximo" class="proximo cartao">
-      <UiIcon nome="relogio" />
-      <p>
-        <strong>Próximo atendimento:</strong>
-        {{ formatarNoFuso(proximo.inicio, fuso).hora }} · {{ proximo.cliente.nome }} · {{ proximo.servico.nome }}
-      </p>
-    </div>
 
     <div :key="`${modo}-${periodo.de}-${filtro}`" class="lista-periodo">
       <div v-if="carregando" role="status" class="esqueletos">
@@ -201,14 +185,18 @@ onMounted(() => {
       </div>
 
       <div v-else-if="!itens.length" class="estado-vazio">
-        <UiIcon nome="agenda-vazia" :tamanho="40" />
-        <template v-if="filtroAtivo?.valor">
+        <UiIcon nome="agenda-relogio" :tamanho="56" class="icone-vazio" />
+        <template v-if="filtroAtivo">
           <h2>Nenhum atendimento nesta situação</h2>
           <p>Não há atendimentos “{{ filtroAtivo.rotulo }}” {{ modo === 'dia' ? 'neste dia' : 'nesta semana' }}.</p>
+          <button type="button" class="btn-link link-acao" @click="filtro = ''">Limpar filtros</button>
         </template>
         <template v-else>
           <h2>{{ modo === 'dia' ? 'Seu dia está livre' : 'Sua semana está livre' }}</h2>
-          <p>Nenhum atendimento por aqui. Aproveite ou registre um novo.</p>
+          <p>Quando houver agendamentos, eles aparecerão aqui.</p>
+          <button type="button" class="btn-link link-acao" @click="criando = true">
+            Agendar cliente <UiIcon nome="seta-direita" :tamanho="20" />
+          </button>
         </template>
       </div>
 
@@ -221,6 +209,25 @@ onMounted(() => {
         </section>
       </template>
     </div>
+
+    <UiSheet v-model="filtrosAbertos" titulo="Filtros">
+      <fieldset>
+        <legend>Situação do agendamento</legend>
+        <div class="opcoes" role="radiogroup" aria-label="Situação do agendamento">
+          <div v-for="f in FILTROS" :key="f.valor" class="opcao">
+            <input
+              :id="`filtro-${f.valor || 'todas'}`" v-model="filtro" type="radio" name="filtro-situacao"
+              :value="f.valor" :data-autofocus="f.valor === filtro ? '' : undefined" @change="aplicarFiltro"
+            >
+            <label :for="`filtro-${f.valor || 'todas'}`">{{ f.rotulo }}</label>
+          </div>
+        </div>
+      </fieldset>
+      <p class="acoes">
+        <button type="button" class="btn-secundario" @click="limparFiltro">Limpar filtros</button>
+        <button type="button" class="btn-primario" @click="aplicarFiltro">Aplicar</button>
+      </p>
+    </UiSheet>
 
     <UiSheet v-model="criando" titulo="Novo agendamento no balcão">
       <FormAgendamentoManual :fuso="fuso" @criado="criado" @fechar="criando = false" />

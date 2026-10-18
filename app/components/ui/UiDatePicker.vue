@@ -16,7 +16,9 @@ const props = defineProps<{
   disabled?: boolean
   erro?: boolean
   ariaLabel?: string
-  variant?: 'campo' | 'compacto'
+  variant?: 'campo' | 'compacto' | 'pilula'
+  /** Texto do gatilho (ex.: período da agenda); por padrão mostra a data escolhida. */
+  displayText?: string
 }>()
 const modelo = defineModel<string>({ default: '' })
 
@@ -113,13 +115,13 @@ const rotuloDia = (ymd: string) => {
 </script>
 
 <template>
-  <div class="ui-data" :class="{ compacto: variant === 'compacto' }">
+  <div class="ui-data" :class="{ compacto: variant === 'compacto', pilula: variant === 'pilula' }">
     <button
       :id="id ?? `${uid}-gatilho`" type="button" class="ui-gatilho" aria-haspopup="dialog" :aria-expanded="aberto"
       :aria-label="ariaLabel" :aria-invalid="erro || undefined" :disabled="disabled" @click="abrir"
     >
-      <UiIcon nome="calendario" :tamanho="20" />
-      <span class="ui-valor" :class="{ 'ui-vazio': !modelo }">{{ modelo ? formatarDataCurta(modelo) : (placeholder ?? 'Escolher data') }}</span>
+      <UiIcon v-if="variant !== 'pilula'" nome="calendario" :tamanho="20" />
+      <span class="ui-valor" :class="{ 'ui-vazio': !modelo && !displayText }">{{ displayText ?? (modelo ? formatarDataCurta(modelo) : (placeholder ?? 'Escolher data')) }}</span>
     </button>
 
     <UiSheet v-model="aberto" :titulo="label ?? 'Escolher data'">
