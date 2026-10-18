@@ -307,21 +307,69 @@ main ul.ui-lista > li.ui-opcao {
 .lista-periodo { animation: aparecer 150ms ease-out both; }
 .titulo-dia { margin: var(--e4) 0 var(--e2); font-size: 1rem; color: var(--texto-suave); }
 
-/* cartão compacto de atendimento */
+/* cartão de atendimento: barra de acento por situação (a informação também está em texto no selo) */
 .item-agendamento,
-main ul > li.item-agendamento { padding: var(--e3) var(--e4); }
-.item-topo { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: var(--e3); }
-.item-topo p { margin: 0; }
-.item-hora { font-size: 1.25rem; font-weight: 700; line-height: 1.2; }
-.item-nome { font-weight: 600; overflow-wrap: anywhere; }
-.item-sub,
-.item-tel { color: var(--texto-suave); overflow-wrap: anywhere; }
-.item-tel { font-size: 0.875rem; }
-.item-lado { display: flex; flex-direction: column; align-items: flex-end; gap: var(--e2); }
-.item-obs { margin: var(--e2) 0 0; padding: var(--e2) var(--e3); background: var(--bg); border-radius: var(--raio-menor); font-size: 0.9375rem; overflow-wrap: anywhere; }
-.item-acoes { display: flex; flex-wrap: wrap; gap: var(--e2); margin-top: var(--e3); }
-.item-acoes > button { flex: 1 1 110px; }
-.item-acoes .menu-envoltorio { flex: none; }
+main ul > li.item-agendamento {
+  --acento-status: var(--texto-suave);
+  min-width: 0;
+  padding: var(--e4);
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-left: 4px solid var(--acento-status);
+  border-radius: 12px;
+}
+.item-agendamento[data-status='pendente'] { --acento-status: var(--aviso); }
+.item-agendamento[data-status='confirmado'] { --acento-status: var(--sucesso); }
+.item-agendamento[data-status='concluido'] { --acento-status: var(--texto-suave); }
+.item-agendamento[data-status='falta'],
+.item-agendamento[data-status^='cancelado'] { --acento-status: var(--erro); }
+.item-agendamento p,
+.item-agendamento h3 { margin: 0; }
+.item-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--e2); margin-bottom: var(--e2); }
+.item-hora { display: flex; align-items: baseline; gap: var(--e1); min-width: 0; white-space: nowrap; }
+.hora-ini { font-size: 1.25rem; font-weight: 700; line-height: 1.2; }
+.hora-fim { color: var(--texto-suave); font-size: 1rem; }
+.item-cab .distintivo-status { flex: none; }
+.item-nome { overflow: hidden; font-size: 1.0625rem; font-weight: 600; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.item-sub { display: flex; align-items: baseline; gap: var(--e1); min-width: 0; margin-top: 2px; color: var(--texto-suave); }
+.item-servico { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-dur { flex: none; white-space: nowrap; }
+.item-contato { display: flex; align-items: center; justify-content: space-between; gap: var(--e2); margin-top: var(--e2); }
+.item-tel { min-width: 0; overflow: hidden; color: var(--texto-suave); font-size: 0.9375rem; text-overflow: ellipsis; white-space: nowrap; }
+.btn-wa { flex: none; height: var(--alvo); padding: 0 var(--e3); }
+@media (max-width: 359px) {
+  .btn-wa { width: var(--alvo); padding: 0; }
+  .wa-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+}
+.item-obs {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  margin-top: var(--e2);
+  padding: var(--e2) var(--e3);
+  overflow: hidden;
+  background: var(--bg);
+  border-radius: var(--raio-menor);
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+.item-acoes {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--e2);
+  margin-top: var(--e3);
+  padding-top: var(--e3);
+  border-top: 1px solid var(--borda);
+}
+.item-acoes > button {
+  flex: 1 1 0;
+  min-width: 0;
+  height: var(--alvo);
+  padding: 0 var(--e2);
+  white-space: nowrap;
+}
+.item-acoes .menu-envoltorio { flex: none; margin-left: auto; }
+.item-acoes .menu-envoltorio > button { height: var(--alvo); }
 
 /* estados */
 .esqueleto-cartao { height: 104px; }
