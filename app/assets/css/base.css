@@ -511,7 +511,6 @@ main ul > li,
 }
 .confirmacao > p:last-child { margin-bottom: 0; }
 .botao-largo { width: 100%; }
-.item-agendamento h3 { margin-bottom: var(--e2); }
 .item-agendamento .confirmacao { margin-top: var(--e3); }
 .campo-check > [role='alert'] { flex-basis: 100%; }
 

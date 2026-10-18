@@ -44,6 +44,8 @@ const itensMenu = computed(() =>
   secundarias.value.map(a => ({ id: a, label: ROTULOS[a], danger: CONFIRMA.has(a) })),
 )
 const quando = computed(() => formatarNoFuso(props.agendamento.inicio, props.fuso))
+const horaFim = computed(() => formatarNoFuso(props.agendamento.fim, props.fuso).hora)
+const telefone = computed(() => formatarTelefoneBR(props.agendamento.cliente.telefone))
 const whatsapp = computed(() => linkWhatsApp(props.agendamento, props.fuso))
 const rotuloCurto = computed(() => ROTULO_CURTO[props.agendamento.status] ?? props.agendamento.status)
 
@@ -97,27 +99,34 @@ async function remarcar() {
 </script>
 
 <template>
-  <li class="item-agendamento">
-    <div class="item-topo">
-      <p class="item-hora">{{ quando.hora }}</p>
-      <div class="item-info">
-        <p class="item-nome">{{ agendamento.cliente.nome }}</p>
-        <p class="item-sub">{{ agendamento.servico.nome }} · {{ agendamento.servico.duracao_min }} min</p>
-        <p class="item-tel">{{ agendamento.cliente.telefone }}</p>
-      </div>
-      <div class="item-lado">
-        <span
-          class="distintivo-status" :data-status="agendamento.status" :title="rotuloStatus(agendamento.status)"
-          :aria-label="rotuloStatus(agendamento.status)"
-        >{{ rotuloCurto }}</span>
-        <a
-          :href="whatsapp" class="btn btn-icone" target="_blank" rel="noopener noreferrer"
-          aria-label="Avisar no WhatsApp" title="Avisar no WhatsApp"
-        ><UiIcon nome="whatsapp" /></a>
-      </div>
+  <li class="item-agendamento" :data-status="agendamento.status">
+    <div class="item-cab">
+      <p class="item-hora">
+        <span class="hora-ini">{{ quando.hora }}</span>
+        <span class="hora-fim"><span class="somente-leitor"> até </span><span aria-hidden="true"> – </span>{{ horaFim }}</span>
+      </p>
+      <span
+        class="distintivo-status" :data-status="agendamento.status" :title="rotuloStatus(agendamento.status)"
+        :aria-label="rotuloStatus(agendamento.status)"
+      >{{ rotuloCurto }}</span>
     </div>
+
+    <h3 class="item-nome">{{ agendamento.cliente.nome }}</h3>
+    <p class="item-sub">
+      <span class="item-servico">{{ agendamento.servico.nome }}</span>
+      <span class="item-dur">· {{ agendamento.servico.duracao_min }} min</span>
+    </p>
+
+    <div class="item-contato">
+      <p class="item-tel">{{ telefone }}</p>
+      <a
+        :href="whatsapp" class="btn btn-secundario btn-wa" target="_blank" rel="noopener noreferrer"
+        aria-label="Avisar no WhatsApp" title="Avisar no WhatsApp"
+      ><UiIcon nome="whatsapp" :tamanho="20" /><span class="wa-texto">WhatsApp</span></a>
+    </div>
+
     <p v-if="agendamento.observacao_cliente" class="item-obs">
-      <span class="somente-leitor">Observação da cliente: </span>{{ agendamento.observacao_cliente }}
+      <span class="somente-leitor">Observação da cliente: </span>“{{ agendamento.observacao_cliente }}”
     </p>
     <AvisoErro v-if="erro" :mensagem="erro" />
 
@@ -129,11 +138,11 @@ async function remarcar() {
         {{ ROTULOS[a] }}
       </button>
       <UiMenu
-        v-if="itensMenu.length" label="Mais" aria-label="Mais ações" :items="itensMenu" align="right"
-        button-class="btn-secundario" @select="id => pedir(id as AcaoAgendamento)"
+        v-if="itensMenu.length" label="Mais ações" aria-label="Mais ações" :items="itensMenu" align="right"
+        button-class="btn-secundario btn-icone" @select="id => pedir(id as AcaoAgendamento)"
       >
         <template #botao>
-          <UiIcon nome="mais-opcoes" :tamanho="20" /> Mais
+          <UiIcon nome="mais-opcoes" :tamanho="20" />
         </template>
       </UiMenu>
     </div>
