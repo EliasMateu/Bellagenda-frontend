@@ -8,7 +8,7 @@ const slug = String(useRoute().params.slug)
 const api = usePublico(slug)
 const locais = useAgendamentosLocais(slug)
 
-const { data: carga } = await useAsyncData(`servicos-${slug}`, async () => {
+const { data: carga, status, refresh } = await useAsyncData(`servicos-${slug}`, async () => {
   try {
     return { dados: await api.servicos() as ServicosResposta | undefined, erro: undefined as ApiError | undefined }
   }
@@ -34,13 +34,17 @@ const meus = ref<{ token: string, ag: AgendamentoConsultado }[]>([])
 
 const servicos = computed<Servico[]>(() => carga.value?.dados?.servicos ?? [])
 const profissional = computed(() => carga.value?.dados?.nome_exibicao ?? '')
+const whatsappPublico = computed(() => {
+  const tel = carga.value?.dados?.profissional_telefone?.replace(/\D/g, '')
+  return tel ? `https://wa.me/${tel}` : ''
+})
 const servico = computed(() => servicos.value.find(s => s.id === servicoId.value))
 const titulos: Record<Passo, string> = {
-  servico: '1. Escolha o serviço',
-  data: '2. Escolha a data',
-  horario: '3. Escolha o horário',
-  dados: '4. Seus dados',
-  revisao: '5. Revise e confirme',
+  servico: 'Escolha o serviço',
+  data: 'Escolha a data',
+  horario: 'Escolha o horário',
+  dados: 'Seus dados',
+  revisao: 'Revise e confirme',
 }
 
 onMounted(() => {
@@ -182,6 +186,38 @@ const ROTULOS_PASSOS: { passo: Passo, rotulo: string }[] = [
 ]
 const indicePasso = computed(() => ROTULOS_PASSOS.findIndex(p => p.passo === passo.value))
 
+// Barra de ação fixa: resumo do que já foi escolhido, voltar e ação primária de cada passo.
+const dataCurta = computed(() => {
+  if (!data.value) return ''
+  const t = formatarDataCurta(data.value).replace(/ \d{4}$/, '')
+  return t.charAt(0).toUpperCase() + t.slice(1)
+})
+const resumo = computed(() => {
+  const s = servico.value
+  if (!s) return ''
+  const partes = [s.nome, formatarDuracao(s.duracao_min), formatarPreco(s.preco)]
+  if (passo.value !== 'servico' && dataCurta.value) partes.push(dataCurta.value)
+  if (inicio.value && passo.value !== 'servico' && passo.value !== 'data') partes.push(formatarIso(inicio.value).hora)
+  return partes.join(' · ')
+})
+const barra = computed<{ rotulo: string, voltar: Passo | '', bloqueado: boolean, ajuda: string }>(() => {
+  switch (passo.value) {
+    case 'servico':
+      return { rotulo: 'Continuar', voltar: '', bloqueado: !servicoId.value, ajuda: 'Escolha um serviço para continuar' }
+    case 'data':
+      return { rotulo: 'Ver horários', voltar: 'servico', bloqueado: carregando.value || !data.value, ajuda: data.value ? '' : 'Escolha uma data para continuar' }
+    case 'horario':
+      return {
+        rotulo: 'Continuar', voltar: 'data', bloqueado: !inicio.value,
+        ajuda: horarios.value?.horarios.length ? 'Escolha um horário para continuar' : 'Escolha outra data para ver horários',
+      }
+    case 'dados':
+      return { rotulo: 'Revisar', voltar: 'horario', bloqueado: false, ajuda: '' }
+    default:
+      return { rotulo: enviando.value ? 'Enviando…' : 'Confirmar agendamento', voltar: 'dados', bloqueado: enviando.value, ajuda: '' }
+  }
+})
+
 function descreve(campo: string) {
   return erros.value[campo] ? `erro-${campo}` : undefined
 }
@@ -191,13 +227,24 @@ function descreve(campo: string) {
   <ContaNaoEncontrada v-if="carga?.erro?.status === 404" />
   <main v-else-if="carga?.erro" class="pagina-publica">
     <h1>Agendamento</h1>
-    <AvisoErro :mensagem="mensagemErro(carga.erro)" />
-  </main>
-  <main v-else class="pagina-publica">
-    <div class="pub-cab">
-      <h1>Agendar com {{ profissional }}</h1>
-      <a :href="`/p/${encodeURIComponent(slug)}/meu-agendamento`" class="pub-meu">Meu agendamento</a>
+    <div v-if="status === 'pending'" role="status" class="esqueletos">
+      <p class="somente-leitor">Carregando…</p>
+      <div v-for="n in 3" :key="n" class="esqueleto esqueleto-srv" aria-hidden="true" />
     </div>
+    <div v-else class="estado-erro">
+      <AvisoErro :mensagem="mensagemErro(carga.erro)" />
+      <p><button type="button" class="btn-secundario" @click="refresh()">Tentar de novo</button></p>
+    </div>
+  </main>
+  <main v-else class="pagina-publica" :class="{ 'com-barra': servicos.length }">
+    <header class="pub-cab">
+      <span class="pub-avatar" aria-hidden="true">{{ iniciaisDe(profissional) }}</span>
+      <div class="pub-id">
+        <h1>{{ profissional }}</h1>
+        <p>Agendamento online</p>
+      </div>
+      <a :href="`/p/${encodeURIComponent(slug)}/meu-agendamento`" class="pub-meu">Meu agendamento</a>
+    </header>
 
     <section v-for="m in meus" :key="m.token" class="cartao meu-aviso" aria-label="Seu agendamento">
       <UiIcon nome="calendario-check" />
@@ -208,7 +255,14 @@ function descreve(campo: string) {
       <a :href="linkMeu(m.token)" class="btn btn-secundario">Ver detalhes</a>
     </section>
 
-    <p v-if="!servicos.length" class="vazio">Nenhum serviço disponível no momento.</p>
+    <UiEmpty
+      v-if="!servicos.length" icone="servicos" titulo="Nenhum serviço disponível agora"
+      texto="Fale com a profissional para saber os horários."
+    >
+      <a v-if="whatsappPublico" :href="whatsappPublico" class="btn btn-secundario" target="_blank" rel="noopener noreferrer">
+        <UiIcon nome="whatsapp" :tamanho="20" />Falar no WhatsApp
+      </a>
+    </UiEmpty>
 
     <section v-else>
       <ol class="progresso" aria-label="Progresso do agendamento">
@@ -216,35 +270,30 @@ function descreve(campo: string) {
           v-for="(p, i) in ROTULOS_PASSOS" :key="p.passo"
           :class="{ feito: i < indicePasso }" :aria-current="i === indicePasso ? 'step' : undefined"
         >
-          <span class="rotulo">{{ p.rotulo }}</span>
+          <span class="rotulo">{{ p.rotulo }}</span><span v-if="i < indicePasso" class="somente-leitor"> (concluído)</span>
         </li>
       </ol>
-      <h2 ref="titulo" tabindex="-1">{{ titulos[passo] }}</h2>
+      <h2 ref="titulo" tabindex="-1" class="passo-titulo">{{ titulos[passo] }}</h2>
+      <p v-if="passo === 'servico'" class="passo-apoio">Toque no serviço que você quer agendar.</p>
       <AvisoErro v-if="erroGeral" :mensagem="erroGeral" />
 
       <!-- 1. Serviço -->
-      <form v-if="passo === 'servico'" class="passo" @submit.prevent="ir('data')">
-        <fieldset>
-          <legend>Serviço</legend>
-          <div class="opcoes">
-            <div v-for="s in servicos" :key="s.id" class="opcao">
-              <input :id="`servico-${s.id}`" v-model="servicoId" type="radio" name="servico" :value="s.id" required>
-              <label :for="`servico-${s.id}`">{{ s.nome }} — {{ s.duracao_min }} min — {{ formatarPreco(s.preco) }}</label>
-            </div>
+      <form v-if="passo === 'servico'" id="passo-servico" class="passo" @submit.prevent="ir('data')">
+        <fieldset role="radiogroup">
+          <legend class="somente-leitor">Serviço</legend>
+          <div class="srv-lista">
+            <ServicoOpcao v-for="(s, i) in servicos" :key="s.id" v-model="servicoId" :servico="s" :indice="i" />
           </div>
+          <p class="somente-leitor" role="status" aria-live="polite">{{ servico ? `${servico.nome} selecionado` : '' }}</p>
         </fieldset>
-        <button type="submit" :disabled="!servicoId">Continuar</button>
       </form>
 
       <!-- 2. Data -->
-      <form v-else-if="passo === 'data'" class="passo" @submit.prevent="carregarHorarios">
-        <p>Serviço: {{ servico?.nome }}</p>
+      <form v-else-if="passo === 'data'" id="passo-data" class="passo" @submit.prevent="carregarHorarios">
         <p class="campo">
           <label for="campo-data">Data</label>
           <UiDatePicker id="campo-data" v-model="data" :min="hoje || undefined" label="Escolher data" />
         </p>
-        <button type="button" @click="ir('servico')">Voltar</button>
-        <button type="submit" :disabled="carregando || !data">Ver horários</button>
       </form>
 
       <!-- 3. Horário -->
@@ -260,7 +309,7 @@ function descreve(campo: string) {
             </li>
           </ul>
         </div>
-        <form v-if="horarios?.horarios.length" @submit.prevent="ir('dados')">
+        <form v-if="horarios?.horarios.length" id="passo-horario" @submit.prevent="ir('dados')">
           <fieldset>
             <legend>Horários disponíveis</legend>
             <div class="chips">
@@ -270,17 +319,12 @@ function descreve(campo: string) {
               </span>
             </div>
           </fieldset>
-          <button type="button" @click="ir('data')">Escolher outra data</button>
-          <button type="submit" :disabled="!inicio">Continuar</button>
         </form>
-        <div v-else>
-          <p class="vazio">Não há horários disponíveis nesta data.</p>
-          <button type="button" @click="ir('data')">Escolher outra data</button>
-        </div>
+        <p v-else class="vazio">Não há horários disponíveis nesta data.</p>
       </div>
 
       <!-- 4. Dados -->
-      <form v-else-if="passo === 'dados'" class="passo" @submit.prevent="irParaRevisao">
+      <form v-else-if="passo === 'dados'" id="passo-dados" class="passo" @submit.prevent="irParaRevisao">
         <p class="campo">
           <label for="campo-nome">Nome</label>
           <input
@@ -321,12 +365,10 @@ function descreve(campo: string) {
           </label>
           <span v-if="erros.consentimento" id="erro-consentimento" role="alert">{{ erros.consentimento.join(' ') }}</span>
         </p>
-        <button type="button" @click="ir('horario')">Voltar</button>
-        <button type="submit">Revisar</button>
       </form>
 
       <!-- 5. Revisão -->
-      <form v-else-if="passo === 'revisao'" class="passo cartao" @submit.prevent="enviar">
+      <form v-else-if="passo === 'revisao'" id="passo-revisao" class="passo cartao" @submit.prevent="enviar">
         <AgendamentoDetalhes
           :servico="servico?.nome ?? ''"
           :profissional="profissional"
@@ -344,10 +386,24 @@ function descreve(campo: string) {
           </template>
         </dl>
         <p>Após confirmar, você receberá um link para consultar e cancelar o agendamento. O prazo de cancelamento aparece na consulta do agendamento.</p>
-        <button type="button" :disabled="enviando" @click="ir('dados')">Voltar</button>
-        <button type="submit" :disabled="enviando">{{ enviando ? 'Enviando…' : 'Confirmar agendamento' }}</button>
       </form>
-
     </section>
+
+    <!-- Barra de ação fixa (todos os passos): resumo, voltar e ação primária -->
+    <div v-if="servicos.length" class="barra-acao">
+      <div class="barra-conteudo">
+        <p v-if="resumo" class="barra-resumo">{{ resumo }}</p>
+        <p v-if="barra.bloqueado && barra.ajuda" id="barra-ajuda" class="barra-ajuda">{{ barra.ajuda }}</p>
+        <div class="barra-botoes">
+          <button v-if="barra.voltar" type="button" class="barra-voltar" :disabled="enviando" @click="ir(barra.voltar)">Voltar</button>
+          <button
+            type="submit" class="barra-primario" :form="`passo-${passo}`" :disabled="barra.bloqueado"
+            :aria-busy="enviando || carregando || undefined" :aria-describedby="barra.bloqueado && barra.ajuda ? 'barra-ajuda' : undefined"
+          >
+            {{ barra.rotulo }}
+          </button>
+        </div>
+      </div>
+    </div>
   </main>
 </template>

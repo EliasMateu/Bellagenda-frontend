@@ -1,11 +1,5 @@
-/* Página de detalhes do atendimento (meu-agendamento) e extras da página pública. Só tokens validados. */
+/* Página de detalhes do atendimento (meu-agendamento). Só tokens validados. */
 
-.pub-cab { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e2) var(--e3); margin-bottom: var(--e3); }
-.pub-cab h1 { flex: 1 1 200px; min-width: 0; margin: 0; }
-.pub-meu { display: inline-flex; flex: none; align-items: center; min-height: var(--alvo); font-size: 1rem; font-weight: 600; }
-.meu-aviso { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e3); margin-bottom: var(--e3); padding: var(--e3) var(--e4); }
-.meu-aviso p { flex: 1 1 180px; min-width: 0; margin: 0; font-size: 1rem; }
-.meu-aviso .icone { color: var(--primaria); }
 
 .detalhes { display: block; }
 .det-voltar { margin: 0 0 var(--e3); }
