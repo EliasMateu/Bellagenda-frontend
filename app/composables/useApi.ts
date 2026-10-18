@@ -3,6 +3,10 @@ export interface ApiError {
   message: string
   fields?: Record<string, string[]>
   status: number
+  /** Campos extras do backend (ex.: sugestoes do 409 conflito_horario). */
+  extra: Record<string, unknown>
+  /** Segundos do cabeçalho Retry-After, se existir. */
+  retryAfter?: number
 }
 
 const SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
@@ -41,14 +45,23 @@ export function useApi() {
 }
 
 function normalizeError(e: unknown): ApiError {
-  const err = e as { statusCode?: number, status?: number, data?: Record<string, unknown> }
+  const err = e as {
+    statusCode?: number
+    status?: number
+    data?: Record<string, unknown>
+    response?: { headers?: Headers }
+  }
   const status = err.statusCode ?? err.status ?? 0
   const data = err.data
   const nested = (data && typeof data.error === 'object' ? data.error : data) as Record<string, unknown> | undefined
+  const { code, message, fields, ...extra } = nested ?? {}
+  const retry = Number(err.response?.headers?.get?.('retry-after'))
   return {
-    code: typeof nested?.code === 'string' ? nested.code : (status ? 'erro_http' : 'erro_rede'),
-    message: typeof nested?.message === 'string' ? nested.message : 'Não foi possível concluir a requisição.',
-    fields: nested?.fields as Record<string, string[]> | undefined,
+    code: typeof code === 'string' ? code : (status ? 'erro_http' : 'erro_rede'),
+    message: typeof message === 'string' ? message : 'Não foi possível concluir a requisição.',
+    fields: fields as Record<string, string[]> | undefined,
     status,
+    extra,
+    retryAfter: Number.isFinite(retry) && retry > 0 ? retry : undefined,
   }
 }
