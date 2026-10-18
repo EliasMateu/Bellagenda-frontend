@@ -3,7 +3,7 @@
 export type NomeIcone =
   | 'calendario' | 'mais' | 'menu' | 'compartilhar' | 'copiar' | 'check' | 'chevron-esquerda'
   | 'chevron-direita' | 'chevron-baixo' | 'relogio' | 'usuario' | 'whatsapp' | 'servicos'
-  | 'horarios' | 'mais-opcoes' | 'filtro' | 'fechar' | 'alerta' | 'agenda-vazia'
+  | 'horarios' | 'calendario-check' | 'mais-opcoes' | 'filtro' | 'fechar' | 'alerta' | 'agenda-vazia'
 
 const RELOGIO = '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'
 const CALENDARIO = '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'
@@ -23,6 +23,7 @@ const FORMAS: Record<NomeIcone, string> = {
   'whatsapp': '<path d="M20.5 11.5a8.5 8.5 0 0 1-12.6 7.4L3.5 20l1.2-4.3A8.5 8.5 0 1 1 20.5 11.5z"/><path d="M9.2 9.2c.3 2.4 2.4 4.5 4.8 4.8l1.4-1.4-2-1-1 .8c-.8-.4-1.4-1-1.8-1.8l.8-1-1-2z"/>',
   'servicos': '<circle cx="6.5" cy="17.5" r="2.5"/><circle cx="6.5" cy="6.5" r="2.5"/><path d="M8.5 8l11 9M8.5 16l11-9"/>',
   'horarios': RELOGIO,
+  'calendario-check': `${CALENDARIO}<path d="M9.5 15l1.7 1.7 3.3-3.4"/>`,
   'mais-opcoes': '<circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/>',
   'filtro': '<path d="M4 6h16M7 12h10M10 18h4"/>',
   'fechar': '<path d="M6 6l12 12M18 6L6 18"/>',

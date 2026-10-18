@@ -60,7 +60,8 @@ export function formatarDataLonga(ymd: string): string {
 }
 
 export function nomeMesAno(ymd: string): string {
-  return FMT_MES_ANO.format(utc(ymd))
+  // Primeira letra maiúscula; o resto como o Intl pt-BR devolve ("Outubro de 2026").
+  return FMT_MES_ANO.format(utc(ymd)).replace(/^./, c => c.toUpperCase())
 }
 
 /** Letras (D S T Q Q S S) e nomes dos dias, de domingo a sábado. */
