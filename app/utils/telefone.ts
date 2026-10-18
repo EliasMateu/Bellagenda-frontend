@@ -3,6 +3,17 @@
  * +5515997402280 -> +55 (15) 99740-2280; 15997402280 -> (15) 99740-2280.
  * Números fora do padrão voltam como vieram.
  */
+/** Máscara enquanto digita: (15) 99740-2280 (até 11 dígitos). */
+export function mascararTelefoneBR(bruto: string): string {
+  const d = bruto.replace(/\D/g, '').slice(0, 11)
+  if (!d) return ''
+  if (d.length <= 2) return `(${d}`
+  const resto = d.slice(2)
+  if (resto.length <= 4) return `(${d.slice(0, 2)}) ${resto}`
+  const corte = d.length === 11 ? 5 : 4
+  return `(${d.slice(0, 2)}) ${resto.slice(0, corte)}-${resto.slice(corte)}`
+}
+
 export function formatarTelefoneBR(bruto: string): string {
   const digitos = bruto.replace(/\D/g, '')
   if (bruto.trim().startsWith('+') && !digitos.startsWith('55')) return bruto // internacional: não mexe

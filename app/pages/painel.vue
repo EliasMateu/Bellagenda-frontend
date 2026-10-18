@@ -99,7 +99,8 @@ watch(() => route.fullPath, () => {
     <main v-if="!sessao.profissional" class="pagina-estreita">
       <section class="cartao">
         <h1>Sem perfil de profissional</h1>
-        <p class="aviso">Este usuário não tem perfil de profissional. O backoffice da plataforma é feito pelo admin do Django.</p>
+        <p class="aviso">Este usuário não tem perfil de profissional.</p>
+        <p v-if="sessao.is_superuser"><NuxtLink to="/backoffice" class="btn btn-primario">Ir para o backoffice</NuxtLink></p>
       </section>
     </main>
 
