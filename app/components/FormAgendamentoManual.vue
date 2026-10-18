@@ -2,6 +2,7 @@
 import type { AgendamentoPainel, ClientePainel, ServicoPainel } from '~/composables/usePainel'
 
 const props = defineProps<{ fuso: string }>()
+const fuso = computed(() => props.fuso)
 const emit = defineEmits<{ criado: [a: AgendamentoPainel], fechar: [] }>()
 
 const api = usePainelApi()
@@ -23,6 +24,10 @@ const form = reactive({
   override: false,
 })
 
+const opcoesServico = computed(() =>
+  servicos.value.map(s => ({ value: s.id, label: s.nome, desc: `${s.duracao_min} min` })),
+)
+
 onMounted(async () => {
   await executar(async () => {
     servicos.value = (await api.servicos.listar()).filter(s => s.ativo)
@@ -40,10 +45,9 @@ async function buscar() {
 }
 
 async function criar() {
-  const fuso = props.fuso
   const corpo: Record<string, unknown> = {
     servico: form.servico,
-    inicio: isoNoFuso(form.inicio, fuso),
+    inicio: isoNoFuso(form.inicio, props.fuso),
     observacao_cliente: form.observacao.trim(),
     override_grade: form.override,
   }
@@ -58,8 +62,7 @@ async function criar() {
 </script>
 
 <template>
-  <form class="cartao" @submit.prevent="criar">
-    <h2>Novo agendamento no balcão</h2>
+  <form @submit.prevent="criar">
     <AvisoErro v-if="erro" :mensagem="erro" />
 
     <fieldset>
@@ -95,11 +98,8 @@ async function criar() {
       </template>
     </fieldset>
 
-    <CampoForm id="servico" v-model="form.servico" tipo="select" label="Serviço" required :erros="erros.servico">
-      <option value="" disabled>Selecione</option>
-      <option v-for="s in servicos" :key="s.id" :value="s.id">{{ s.nome }} ({{ s.duracao_min }} min)</option>
-    </CampoForm>
-    <CampoForm id="inicio" v-model="form.inicio" tipo="datetime-local" label="Início" required :erros="erros.inicio" />
+    <CampoForm id="servico" v-model="form.servico" tipo="select" label="Serviço" placeholder="Selecione" :options="opcoesServico" :erros="erros.servico" />
+    <CampoForm id="inicio" v-model="form.inicio" tipo="datetime-local" label="Início" :hoje="hojeNoFuso(fuso)" :erros="erros.inicio" />
     <CampoForm id="observacao_cliente" v-model="form.observacao" tipo="textarea" label="Observação (opcional)" maxlength="500" :erros="erros.observacao_cliente" />
     <CampoForm id="override_grade" v-model="form.override" tipo="checkbox" label="Ignorar a grade de horários e bloqueios (atenção: pode marcar fora do expediente)" />
 

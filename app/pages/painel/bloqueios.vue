@@ -71,8 +71,8 @@ onMounted(carregar)
     <form v-if="editando !== null" class="cartao" @submit.prevent="salvar">
       <h2>{{ editando === 'novo' ? 'Novo bloqueio' : 'Editar bloqueio' }}</h2>
       <AvisoErro v-if="envio.erro.value" :mensagem="envio.erro.value" />
-      <CampoForm id="inicio" v-model="form.inicio" tipo="datetime-local" label="Início" required :erros="envio.erros.value.inicio" />
-      <CampoForm id="fim" v-model="form.fim" tipo="datetime-local" label="Fim" required :erros="envio.erros.value.fim" />
+      <CampoForm id="inicio" v-model="form.inicio" tipo="datetime-local" label="Início" :hoje="hojeNoFuso(fuso)" :erros="envio.erros.value.inicio" />
+      <CampoForm id="fim" v-model="form.fim" tipo="datetime-local" label="Fim" :hoje="hojeNoFuso(fuso)" :erros="envio.erros.value.fim" />
       <CampoForm id="motivo" v-model="form.motivo" label="Motivo (opcional)" maxlength="200" :erros="envio.erros.value.motivo" />
       <button type="button" :disabled="envio.enviando.value" @click="editando = null">Cancelar</button>
       <button type="submit" :disabled="envio.enviando.value">{{ envio.enviando.value ? 'Salvando…' : 'Salvar' }}</button>
