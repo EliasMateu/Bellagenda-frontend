@@ -1,0 +1,53 @@
+/* Tokens visuais (D-17 / D-29): Nude Studio + primária Rose. Tema automático, sem alternância manual.
+   Razões de contraste conferidas por script (ver relatório da tarefa). */
+:root {
+  color-scheme: light dark;
+
+  --bg: #faf7f4;
+  --superficie: #ffffff;
+  --primaria: #b23a6b;
+  --primaria-hover: #8f2b54;
+  --on-primaria: #ffffff;
+  --acento: #d9a88f; /* somente decorativo */
+  --texto: #1f1a17;
+  --texto-suave: #5e544e;
+  --borda: #e8dfd8; /* decorativa (divisórias de cartões) */
+  --borda-controle: #85796f; /* inputs, selects, checkboxes, radios e botões secundários (>= 3:1) */
+  --sucesso: #2f7a4f;
+  --erro: #b3261e;
+  --aviso: #8a5a00;
+
+  --fonte: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --raio: 10px;
+  --raio-menor: 8px;
+  --alvo: 44px;
+
+  /* escala de 4px */
+  --e1: 4px;
+  --e2: 8px;
+  --e3: 12px;
+  --e4: 16px;
+  --e5: 20px;
+  --e6: 24px;
+  --e8: 32px;
+  --e10: 40px;
+
+  --duracao: 180ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171311;
+    --superficie: #211b18;
+    --primaria: #f08db3;
+    --primaria-hover: #f5a6c4;
+    --on-primaria: #1f1a17;
+    --texto: #f3ece7;
+    --texto-suave: #bfb1a8;
+    --borda: #3a302b;
+    --borda-controle: #8f827a;
+    --sucesso: #6fcf97;
+    --erro: #ff8a80;
+    --aviso: #f2c057;
+  }
+}

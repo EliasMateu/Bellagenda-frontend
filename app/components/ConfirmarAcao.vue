@@ -6,9 +6,11 @@ onMounted(() => titulo.value?.focus())
 </script>
 
 <template>
-  <div role="group" aria-label="Confirmação">
-    <p ref="titulo" tabindex="-1">{{ pergunta }}</p>
-    <button type="button" :disabled="enviando" @click="$emit('voltar')">Voltar</button>
-    <button type="button" :disabled="enviando" @click="$emit('confirmar')">{{ rotulo }}</button>
+  <div class="confirmacao" role="group" aria-label="Confirmação">
+    <p ref="titulo" tabindex="-1"><strong>{{ pergunta }}</strong></p>
+    <p>
+      <button type="button" class="btn-secundario" :disabled="enviando" @click="$emit('voltar')">Voltar</button>
+      <button type="button" class="btn-perigo" :disabled="enviando" @click="$emit('confirmar')">{{ rotulo }}</button>
+    </p>
   </div>
 </template>

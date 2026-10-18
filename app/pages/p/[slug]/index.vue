@@ -148,6 +148,16 @@ async function tratarErro(e: ApiError) {
   erroGeral.value = mensagemErro(e)
 }
 
+const ROTULOS_PASSOS: { passo: Passo, rotulo: string }[] = [
+  { passo: 'servico', rotulo: 'Serviço' },
+  { passo: 'data', rotulo: 'Data' },
+  { passo: 'horario', rotulo: 'Horário' },
+  { passo: 'dados', rotulo: 'Dados' },
+  { passo: 'revisao', rotulo: 'Revisão' },
+  { passo: 'confirmado', rotulo: 'Pronto' },
+]
+const indicePasso = computed(() => ROTULOS_PASSOS.findIndex(p => p.passo === passo.value))
+
 function descreve(campo: string) {
   return erros.value[campo] ? `erro-${campo}` : undefined
 }
@@ -155,35 +165,45 @@ function descreve(campo: string) {
 
 <template>
   <ContaNaoEncontrada v-if="carga?.erro?.status === 404" />
-  <main v-else-if="carga?.erro">
+  <main v-else-if="carga?.erro" class="pagina-publica">
     <h1>Agendamento</h1>
     <AvisoErro :mensagem="mensagemErro(carga.erro)" />
   </main>
-  <main v-else>
+  <main v-else class="pagina-publica">
     <h1>Agendar com {{ profissional }}</h1>
 
-    <p v-if="!servicos.length">Nenhum serviço disponível no momento.</p>
+    <p v-if="!servicos.length" class="vazio">Nenhum serviço disponível no momento.</p>
 
     <section v-else>
+      <ol class="progresso" aria-label="Progresso do agendamento">
+        <li
+          v-for="(p, i) in ROTULOS_PASSOS" :key="p.passo"
+          :class="{ feito: i < indicePasso }" :aria-current="i === indicePasso ? 'step' : undefined"
+        >
+          <span class="rotulo">{{ p.rotulo }}</span>
+        </li>
+      </ol>
       <h2 v-if="passo !== 'confirmado'" ref="titulo" tabindex="-1">{{ titulos[passo] }}</h2>
       <AvisoErro v-if="erroGeral" :mensagem="erroGeral" />
 
       <!-- 1. Serviço -->
-      <form v-if="passo === 'servico'" @submit.prevent="ir('data')">
+      <form v-if="passo === 'servico'" class="passo" @submit.prevent="ir('data')">
         <fieldset>
           <legend>Serviço</legend>
-          <p v-for="s in servicos" :key="s.id">
-            <input :id="`servico-${s.id}`" v-model="servicoId" type="radio" name="servico" :value="s.id" required>
-            <label :for="`servico-${s.id}`">{{ s.nome }} — {{ s.duracao_min }} min — {{ formatarPreco(s.preco) }}</label>
-          </p>
+          <div class="opcoes">
+            <div v-for="s in servicos" :key="s.id" class="opcao">
+              <input :id="`servico-${s.id}`" v-model="servicoId" type="radio" name="servico" :value="s.id" required>
+              <label :for="`servico-${s.id}`">{{ s.nome }} — {{ s.duracao_min }} min — {{ formatarPreco(s.preco) }}</label>
+            </div>
+          </div>
         </fieldset>
         <button type="submit" :disabled="!servicoId">Continuar</button>
       </form>
 
       <!-- 2. Data -->
-      <form v-else-if="passo === 'data'" @submit.prevent="carregarHorarios">
+      <form v-else-if="passo === 'data'" class="passo" @submit.prevent="carregarHorarios">
         <p>Serviço: {{ servico?.nome }}</p>
-        <p>
+        <p class="campo">
           <label for="campo-data">Data</label>
           <input id="campo-data" v-model="data" type="date" :min="hoje || undefined" required>
         </p>
@@ -192,9 +212,9 @@ function descreve(campo: string) {
       </form>
 
       <!-- 3. Horário -->
-      <div v-else-if="passo === 'horario'">
+      <div v-else-if="passo === 'horario'" class="passo">
         <p>{{ servico?.nome }} em {{ formatarIso(`${data}T00:00`).data }}</p>
-        <div v-if="sugestoes.length">
+        <div v-if="sugestoes.length" class="aviso">
           <p>Horários próximos sugeridos:</p>
           <ul>
             <li v-for="s in sugestoes" :key="s">
@@ -207,23 +227,25 @@ function descreve(campo: string) {
         <form v-if="horarios?.horarios.length" @submit.prevent="ir('dados')">
           <fieldset>
             <legend>Horários disponíveis</legend>
-            <span v-for="h in horarios.horarios" :key="h">
-              <input :id="`h-${h}`" v-model="inicio" type="radio" name="horario" :value="h" required>
-              <label :for="`h-${h}`">{{ formatarIso(h).hora }}</label>
-            </span>
+            <div class="chips">
+              <span v-for="h in horarios.horarios" :key="h" class="chip-opcao">
+                <input :id="`h-${h}`" v-model="inicio" type="radio" name="horario" :value="h" required>
+                <label :for="`h-${h}`" class="chip">{{ formatarIso(h).hora }}</label>
+              </span>
+            </div>
           </fieldset>
           <button type="button" @click="ir('data')">Escolher outra data</button>
           <button type="submit" :disabled="!inicio">Continuar</button>
         </form>
         <div v-else>
-          <p>Não há horários disponíveis nesta data.</p>
+          <p class="vazio">Não há horários disponíveis nesta data.</p>
           <button type="button" @click="ir('data')">Escolher outra data</button>
         </div>
       </div>
 
       <!-- 4. Dados -->
-      <form v-else-if="passo === 'dados'" @submit.prevent="irParaRevisao">
-        <p>
+      <form v-else-if="passo === 'dados'" class="passo" @submit.prevent="irParaRevisao">
+        <p class="campo">
           <label for="campo-nome">Nome</label>
           <input
             id="campo-nome" v-model="form.nome" type="text" name="nome" autocomplete="name"
@@ -231,7 +253,7 @@ function descreve(campo: string) {
           >
           <span v-if="erros.nome" id="erro-nome" role="alert">{{ erros.nome.join(' ') }}</span>
         </p>
-        <p>
+        <p class="campo">
           <label for="campo-telefone">WhatsApp (com DDD)</label>
           <input
             id="campo-telefone" v-model="form.telefone" type="tel" inputmode="tel" name="telefone" autocomplete="tel"
@@ -239,7 +261,7 @@ function descreve(campo: string) {
           >
           <span v-if="erros.telefone" id="erro-telefone" role="alert">{{ erros.telefone.join(' ') }}</span>
         </p>
-        <p>
+        <p class="campo">
           <label for="campo-observacao">Observação (opcional)</label>
           <textarea
             id="campo-observacao" v-model="form.observacao" name="observacao" maxlength="500"
@@ -252,7 +274,7 @@ function descreve(campo: string) {
           <label for="campo-website">Website</label>
           <input id="campo-website" v-model="form.website" type="text" name="website" tabindex="-1" autocomplete="off">
         </div>
-        <p>
+        <p class="campo campo-check">
           <!-- TODO texto final jurídico (BLQ-7): texto provisório. -->
           <input
             id="campo-consentimento" v-model="form.consentimento" type="checkbox" name="consentimento"
@@ -268,7 +290,7 @@ function descreve(campo: string) {
       </form>
 
       <!-- 5. Revisão -->
-      <form v-else-if="passo === 'revisao'" @submit.prevent="enviar">
+      <form v-else-if="passo === 'revisao'" class="passo cartao" @submit.prevent="enviar">
         <AgendamentoDetalhes
           :servico="servico?.nome ?? ''"
           :profissional="profissional"

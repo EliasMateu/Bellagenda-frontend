@@ -58,29 +58,35 @@ async function criar() {
 </script>
 
 <template>
-  <form @submit.prevent="criar">
+  <form class="cartao" @submit.prevent="criar">
     <h2>Novo agendamento no balcão</h2>
     <AvisoErro v-if="erro" :mensagem="erro" />
 
     <fieldset>
       <legend>Cliente</legend>
-      <p>
-        <input id="modo-existente" v-model="modo" type="radio" name="modo" value="existente">
-        <label for="modo-existente">Cliente cadastrada</label>
-        <input id="modo-novo" v-model="modo" type="radio" name="modo" value="novo">
-        <label for="modo-novo">Nova cliente</label>
-      </p>
+      <div class="opcoes">
+        <div class="opcao">
+          <input id="modo-existente" v-model="modo" type="radio" name="modo" value="existente">
+          <label for="modo-existente">Cliente cadastrada</label>
+        </div>
+        <div class="opcao">
+          <input id="modo-novo" v-model="modo" type="radio" name="modo" value="novo">
+          <label for="modo-novo">Nova cliente</label>
+        </div>
+      </div>
       <template v-if="modo === 'existente'">
-        <p>
+        <p class="campo">
           <label for="campo-busca">Buscar por nome ou telefone</label>
           <input id="campo-busca" v-model="busca" type="search" @keydown.enter.prevent="buscar">
-          <button type="button" :disabled="buscando" @click="buscar">Buscar</button>
         </p>
-        <p v-if="buscou && !encontrados.length">Nenhuma cliente encontrada.</p>
-        <p v-for="c in encontrados" :key="c.id">
-          <input :id="`cli-${c.id}`" v-model="form.clienteId" type="radio" name="cliente" :value="c.id">
-          <label :for="`cli-${c.id}`">{{ c.nome }} — {{ c.telefone }}</label>
-        </p>
+        <p><button type="button" :disabled="buscando" @click="buscar">Buscar</button></p>
+        <p v-if="buscou && !encontrados.length" class="vazio">Nenhuma cliente encontrada.</p>
+        <div class="opcoes">
+          <div v-for="c in encontrados" :key="c.id" class="opcao">
+            <input :id="`cli-${c.id}`" v-model="form.clienteId" type="radio" name="cliente" :value="c.id">
+            <label :for="`cli-${c.id}`">{{ c.nome }} — {{ c.telefone }}</label>
+          </div>
+        </div>
         <span v-if="erros.cliente" role="alert">{{ erros.cliente.join(' ') }}</span>
       </template>
       <template v-else>

@@ -29,7 +29,7 @@ defineProps<{
     </template>
     <template v-if="status">
       <dt>Situação</dt>
-      <dd>{{ rotuloStatus(status) }}</dd>
+      <dd><span class="distintivo-status" :data-status="status">{{ rotuloStatus(status) }}</span></dd>
     </template>
   </dl>
 </template>

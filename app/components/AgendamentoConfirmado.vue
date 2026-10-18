@@ -31,8 +31,9 @@ onMounted(() => titulo.value?.focus())
 </script>
 
 <template>
-  <section>
+  <section class="passo cartao">
     <h2 ref="titulo" tabindex="-1">Agendamento recebido</h2>
+    <p class="codigo-destaque" aria-label="Código do agendamento">{{ criado.codigo }}</p>
     <AgendamentoDetalhes
       :servico="criado.servico"
       :profissional="criado.profissional"
@@ -40,14 +41,14 @@ onMounted(() => titulo.value?.focus())
       :codigo="criado.codigo"
       :status="criado.status"
     />
-    <p><strong>Guarde este link agora.</strong> Ele aparece somente nesta tela e é necessário para consultar ou cancelar o agendamento.</p>
-    <p>
-      <label for="link-gestao">Link para gerenciar o agendamento</label><br>
+    <p class="aviso"><strong>Guarde este link agora.</strong> Ele aparece somente nesta tela e é necessário para consultar ou cancelar o agendamento.</p>
+    <p class="campo">
+      <label for="link-gestao">Link para gerenciar o agendamento</label>
       <input id="link-gestao" type="text" readonly :value="link">
     </p>
     <p>
-      <button type="button" @click="copiar">Copiar link</button>
-      <a :href="whatsapp" target="_blank" rel="noopener noreferrer">Salvar no WhatsApp</a>
+      <button type="button" class="btn-primario" @click="copiar">Copiar link</button>
+      <a :href="whatsapp" class="btn" target="_blank" rel="noopener noreferrer">Salvar no WhatsApp</a>
     </p>
     <p v-if="copiado" role="status">Link copiado.</p>
   </section>

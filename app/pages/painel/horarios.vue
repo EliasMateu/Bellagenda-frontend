@@ -60,7 +60,7 @@ onMounted(carregar)
     <AvisoErro v-if="lista.erro.value" :mensagem="lista.erro.value" />
     <p><button type="button" @click="abrir()">Nova faixa de horário</button></p>
 
-    <form v-if="editando !== null" @submit.prevent="salvar">
+    <form v-if="editando !== null" class="cartao" @submit.prevent="salvar">
       <h2>{{ editando === 'novo' ? 'Nova faixa' : 'Editar faixa' }}</h2>
       <AvisoErro v-if="envio.erro.value" :mensagem="envio.erro.value" />
       <CampoForm id="dia_semana" v-model="form.dia_semana" tipo="select" label="Dia da semana" :erros="envio.erros.value.dia_semana">
@@ -74,9 +74,9 @@ onMounted(carregar)
 
     <section v-for="d in porDia" :key="d.dia">
       <h2>{{ d.nome }}</h2>
-      <p v-if="!d.faixas.length">Sem atendimento.</p>
+      <p v-if="!d.faixas.length" class="vazio">Sem atendimento.</p>
       <ul>
-        <li v-for="h in d.faixas" :key="h.id">
+        <li v-for="h in d.faixas" :key="h.id" class="linha">
           {{ h.inicio.slice(0, 5) }} às {{ h.fim.slice(0, 5) }}
           <button type="button" :disabled="lista.enviando.value" @click="abrir(h)">Editar</button>
           <button type="button" :disabled="lista.enviando.value" @click="apagando = h.id">Apagar</button>

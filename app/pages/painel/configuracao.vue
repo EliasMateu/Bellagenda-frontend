@@ -55,7 +55,7 @@ async function salvar() {
   <section>
     <h1>Configurações</h1>
     <AvisoErro v-if="carga.erro.value" :mensagem="carga.erro.value" />
-    <form v-if="configuracao" @submit.prevent="salvar">
+    <form v-if="configuracao" class="cartao" @submit.prevent="salvar">
       <AvisoErro v-if="envio.erro.value" :mensagem="envio.erro.value" />
       <p>Fuso horário: {{ configuracao.timezone }}</p>
       <CampoForm id="antecedencia_min_agendamento_h" v-model="form.antecedencia_min_agendamento_h" tipo="number" min="0" required label="Antecedência mínima para agendar (horas)" :erros="envio.erros.value.antecedencia_min_agendamento_h" />

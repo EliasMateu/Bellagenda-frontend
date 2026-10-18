@@ -14,7 +14,7 @@ const idErro = computed(() => (props.erros?.length ? `erro-${props.id}` : undefi
 </script>
 
 <template>
-  <p>
+  <p :class="tipo === 'checkbox' ? 'campo campo-check' : 'campo'">
     <template v-if="tipo === 'checkbox'">
       <input :id="campo" v-model="modelo" type="checkbox" :name="id" :aria-describedby="idErro" :aria-invalid="!!idErro" v-bind="$attrs">
       <label :for="campo">{{ label }}</label>

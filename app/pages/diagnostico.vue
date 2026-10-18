@@ -19,10 +19,12 @@ async function verificar() {
 </script>
 
 <template>
-  <main>
-    <h1>Diagnóstico</h1>
-    <p>Página temporária. Remover antes de produção.</p>
-    <button type="button" :disabled="carregando" @click="verificar">Chamar /api/v1/saude/</button>
-    <pre aria-live="polite">{{ resultado }}</pre>
+  <main class="pagina-estreita">
+    <section class="cartao">
+      <h1>Diagnóstico</h1>
+      <p class="aviso">Página temporária. Remover antes de produção.</p>
+      <p><button type="button" :disabled="carregando" @click="verificar">Chamar /api/v1/saude/</button></p>
+      <pre aria-live="polite">{{ resultado }}</pre>
+    </section>
   </main>
 </template>

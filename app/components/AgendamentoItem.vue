@@ -18,6 +18,12 @@ const ROTULOS: Record<AcaoAgendamento, string> = {
 }
 const CONFIRMA = new Set<AcaoAgendamento>(['recusar', 'cancelar', 'cancelar_cliente'])
 
+// Hierarquia visual: confirmar/concluir = primária; recusar/cancelar = perigo; demais = secundária.
+function classeAcao(a: AcaoAgendamento) {
+  if (a === 'confirmar' || a === 'concluir') return 'btn-primario'
+  return CONFIRMA.has(a) ? 'btn-perigo' : 'btn-secundario'
+}
+
 const acoes = computed(() => ACOES_POR_STATUS[props.agendamento.status] ?? [])
 const quando = computed(() => formatarNoFuso(props.agendamento.inicio, props.fuso))
 const whatsapp = computed(() => linkWhatsApp(props.agendamento, props.fuso))
@@ -72,7 +78,7 @@ async function remarcar() {
 </script>
 
 <template>
-  <li>
+  <li class="item-agendamento">
     <h3>{{ quando.hora }} — {{ agendamento.servico.nome }}</h3>
     <dl>
       <dt>Cliente</dt>
@@ -82,7 +88,7 @@ async function remarcar() {
       <dt>Data</dt>
       <dd>{{ quando.data }}</dd>
       <dt>Situação</dt>
-      <dd>{{ rotuloStatus(agendamento.status) }}</dd>
+      <dd><span class="distintivo-status" :data-status="agendamento.status">{{ rotuloStatus(agendamento.status) }}</span></dd>
       <template v-if="agendamento.observacao_cliente">
         <dt>Observação da cliente</dt>
         <dd>{{ agendamento.observacao_cliente }}</dd>
@@ -92,11 +98,11 @@ async function remarcar() {
 
     <p>
       <button
-        v-for="a in acoes" :key="a" type="button" :disabled="enviando" @click="pedir(a)"
+        v-for="a in acoes" :key="a" type="button" :class="classeAcao(a)" :disabled="enviando" @click="pedir(a)"
       >
         {{ ROTULOS[a] }}
       </button>
-      <a :href="whatsapp" target="_blank" rel="noopener noreferrer">Avisar no WhatsApp</a>
+      <a :href="whatsapp" class="btn" target="_blank" rel="noopener noreferrer">Avisar no WhatsApp</a>
     </p>
 
     <ConfirmarAcao
@@ -108,7 +114,7 @@ async function remarcar() {
       @confirmar="aplicar(pendente!)"
     />
 
-    <form v-if="remarcando" @submit.prevent="remarcar">
+    <form v-if="remarcando" class="confirmacao" @submit.prevent="remarcar">
       <CampoForm id="inicio" v-model="novoInicio" tipo="datetime-local" label="Novo início" required :erros="erros.inicio" />
       <CampoForm id="override_grade" v-model="override" tipo="checkbox" label="Ignorar a grade de horários e bloqueios (atenção)" />
       <button type="button" :disabled="enviando" @click="remarcando = false">Voltar</button>

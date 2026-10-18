@@ -74,7 +74,7 @@ onMounted(carregar)
 
     <p><button type="button" @click="abrir()">Novo serviço</button></p>
 
-    <form v-if="editando !== null" @submit.prevent="salvar">
+    <form v-if="editando !== null" class="cartao" @submit.prevent="salvar">
       <h2>{{ editando === 'novo' ? 'Novo serviço' : 'Editar serviço' }}</h2>
       <AvisoErro v-if="envio.erro.value" :mensagem="envio.erro.value" />
       <CampoForm id="nome" v-model="form.nome" label="Nome" required maxlength="100" :erros="envio.erros.value.nome" />
@@ -85,9 +85,9 @@ onMounted(carregar)
       <button type="submit" :disabled="envio.enviando.value">{{ envio.enviando.value ? 'Salvando…' : 'Salvar' }}</button>
     </form>
 
-    <p v-if="!servicos.length && !carga.enviando.value">Nenhum serviço cadastrado.</p>
+    <p v-if="!servicos.length && !carga.enviando.value" class="vazio">Nenhum serviço cadastrado.</p>
     <ul>
-      <li v-for="s in servicos" :key="s.id">
+      <li v-for="s in servicos" :key="s.id" class="linha">
         {{ s.nome }} — {{ s.duracao_min }} min — {{ formatarPreco(s.preco) }} — {{ s.ativo ? 'Ativo' : 'Inativo' }}
         <button type="button" :disabled="lista.enviando.value" @click="abrir(s)">Editar</button>
         <button type="button" :disabled="lista.enviando.value" @click="alternar(s)">{{ s.ativo ? 'Inativar' : 'Ativar' }}</button>

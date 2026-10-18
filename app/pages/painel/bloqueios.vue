@@ -68,7 +68,7 @@ onMounted(carregar)
     <AvisoErro v-if="lista.erro.value" :mensagem="lista.erro.value" />
     <p><button type="button" @click="abrir()">Novo bloqueio</button></p>
 
-    <form v-if="editando !== null" @submit.prevent="salvar">
+    <form v-if="editando !== null" class="cartao" @submit.prevent="salvar">
       <h2>{{ editando === 'novo' ? 'Novo bloqueio' : 'Editar bloqueio' }}</h2>
       <AvisoErro v-if="envio.erro.value" :mensagem="envio.erro.value" />
       <CampoForm id="inicio" v-model="form.inicio" tipo="datetime-local" label="Início" required :erros="envio.erros.value.inicio" />
@@ -78,9 +78,9 @@ onMounted(carregar)
       <button type="submit" :disabled="envio.enviando.value">{{ envio.enviando.value ? 'Salvando…' : 'Salvar' }}</button>
     </form>
 
-    <p v-if="!bloqueios.length && !carga.enviando.value">Nenhum bloqueio cadastrado.</p>
+    <p v-if="!bloqueios.length && !carga.enviando.value" class="vazio">Nenhum bloqueio cadastrado.</p>
     <ul>
-      <li v-for="b in bloqueios" :key="b.id">
+      <li v-for="b in bloqueios" :key="b.id" class="linha">
         {{ periodo(b) }}<template v-if="b.motivo"> — {{ b.motivo }}</template>
         <button type="button" :disabled="lista.enviando.value" @click="abrir(b)">Editar</button>
         <button type="button" :disabled="lista.enviando.value" @click="apagando = b.id">Apagar</button>
