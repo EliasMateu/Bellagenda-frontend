@@ -7,6 +7,8 @@ export interface Servico {
 
 export interface ServicosResposta {
   nome_exibicao: string
+  /** Telefone público da profissional, se o backend o enviar. */
+  profissional_telefone?: string | null
   servicos: Servico[]
 }
 

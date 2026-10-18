@@ -11,5 +11,6 @@ defineEmits<{ acao: [] }>()
     <h2>{{ titulo }}</h2>
     <p v-if="texto">{{ texto }}</p>
     <button v-if="acao" type="button" class="btn-secundario" @click="$emit('acao')">{{ acao }}</button>
+    <slot />
   </div>
 </template>

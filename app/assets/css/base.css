@@ -424,41 +424,6 @@ dd { margin: 0; overflow-wrap: anywhere; }
   animation: brilho 2.4s ease-in-out infinite;
 }
 
-/* ---------- progresso dos passos (página pública) ---------- */
-.progresso {
-  display: flex;
-  gap: var(--e1);
-  margin: 0 0 var(--e5);
-  padding: 0;
-  list-style: none;
-  counter-reset: passo;
-}
-.progresso li {
-  flex: 1;
-  padding: var(--e2) 0 0;
-  border: 0;
-  border-top: 4px solid var(--borda-controle);
-  border-radius: 0;
-  background: none;
-  font-size: 0.8125rem;
-  color: var(--texto-suave);
-  text-align: center;
-  line-height: 1.25;
-}
-.progresso li::before { counter-increment: passo; content: counter(passo); display: block; font-weight: 700; }
-.progresso li[aria-current='step'] { border-top-color: var(--primaria); color: var(--texto); font-weight: 700; }
-.progresso li.feito { border-top-color: var(--primaria); }
-.progresso li.feito::before { content: '\2713'; }
-@media (max-width: 479px) {
-  .progresso li:not([aria-current='step']) .rotulo {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-  }
-}
-
 /* ---------- animações discretas ---------- */
 .passo,
 main ul > li,

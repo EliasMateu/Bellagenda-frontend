@@ -3,7 +3,7 @@
 export type NomeIcone =
   | 'calendario' | 'mais' | 'menu' | 'compartilhar' | 'copiar' | 'check' | 'chevron-esquerda'
   | 'chevron-direita' | 'chevron-baixo' | 'relogio' | 'usuario' | 'whatsapp' | 'servicos'
-  | 'horarios' | 'calendario-check' | 'etiqueta' | 'lupa' | 'seta-direita' | 'agenda-relogio' | 'mais-opcoes' | 'filtro' | 'fechar' | 'alerta' | 'agenda-vazia'
+  | 'horarios' | 'calendario-check' | 'etiqueta' | 'lupa' | 'seta-direita' | 'agenda-relogio' | 'mais-opcoes' | 'filtro' | 'fechar' | 'alerta' | 'agenda-vazia' | 'pincel'
 
 const RELOGIO = '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'
 const CALENDARIO = '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'
@@ -33,6 +33,7 @@ const FORMAS: Record<NomeIcone, string> = {
   'fechar': '<path d="M6 6l12 12M18 6L6 18"/>',
   'alerta': '<path d="M12 4l9 15.5H3L12 4z"/><path d="M12 10v4M12 17h.01"/>',
   'agenda-vazia': `${CALENDARIO}<path d="M9.5 15l1.7 1.7 3.3-3.4"/>`,
+  'pincel': '<path d="M19.5 4.5a2 2 0 0 0-2.8 0L10 11.2l2.8 2.8 6.7-6.7a2 2 0 0 0 0-2.8z"/><path d="M9.3 12.6C7 12.6 5.5 14 5.5 16c0 1.4-.7 2.4-2 3 3.5 1.3 8 .2 8-3.3"/>',
 }
 
 const props = withDefaults(defineProps<{ nome: NomeIcone, tamanho?: number, titulo?: string }>(), { tamanho: 24 })
