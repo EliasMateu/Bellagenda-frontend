@@ -29,6 +29,24 @@ const campo = computed(() => `campo-${props.id}`)
 const idErro = computed(() => (props.erros?.length ? `erro-${props.id}` : undefined))
 const idAjuda = computed(() => (props.ajuda ? `ajuda-${props.id}` : undefined))
 const descrito = computed(() => [idErro.value, idAjuda.value].filter(Boolean).join(' ') || undefined)
+
+// tipo password: botão de olho embutido; o estado vale só enquanto o campo está montado
+const verSenha = ref(false)
+const entrada = ref<HTMLInputElement | null>(null)
+const tipoEntrada = computed(() => (props.tipo === 'password' && verSenha.value ? 'text' : (props.tipo ?? 'text')))
+
+async function alternarSenha() {
+  const el = entrada.value
+  const ini = el?.selectionStart ?? null
+  const fim = el?.selectionEnd ?? null
+  verSenha.value = !verSenha.value
+  await nextTick()
+  el?.focus()
+  if (el && ini !== null && fim !== null) {
+    try { el.setSelectionRange(ini, fim) }
+    catch { /* tipo sem seleção */ }
+  }
+}
 </script>
 
 <template>
@@ -56,10 +74,16 @@ const descrito = computed(() => [idErro.value, idAjuda.value].filter(Boolean).jo
         v-else-if="tipo === 'datetime-local'" :id="campo" v-model="modelo as string" :label="label"
         :min="dataMin" :max="dataMax" :today="hoje" :step="passo" :erro="!!idErro"
       />
-      <div v-else class="input-unidade" :class="{ 'com-prefixo': prefixo, 'com-sufixo': sufixo }">
+      <div v-else class="input-unidade" :class="{ 'com-prefixo': prefixo, 'com-sufixo': sufixo, 'senha-campo': tipo === 'password' }">
         <span v-if="prefixo" class="unidade unidade-pre" aria-hidden="true">{{ prefixo }}</span>
-        <input :id="campo" v-model="modelo" :type="tipo ?? 'text'" :name="id" :aria-describedby="descrito" :aria-invalid="!!idErro" v-bind="$attrs">
+        <input ref="entrada" :id="campo" v-model="modelo" :type="tipoEntrada" :name="id" :aria-describedby="descrito" :aria-invalid="!!idErro" v-bind="$attrs">
         <span v-if="sufixo" class="unidade unidade-suf" aria-hidden="true">{{ sufixo }}</span>
+        <button
+          v-if="tipo === 'password'" type="button" class="senha-ver" :aria-pressed="verSenha"
+          :aria-label="verSenha ? 'Ocultar senha' : 'Mostrar senha'" :aria-controls="campo" @click="alternarSenha"
+        >
+          <UiIcon :nome="verSenha ? 'olho-fechado' : 'olho'" :tamanho="22" />
+        </button>
       </div>
     </template>
     <small v-if="ajuda" :id="idAjuda" class="ajuda">{{ ajuda }}</small>
