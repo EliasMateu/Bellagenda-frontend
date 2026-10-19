@@ -6,8 +6,11 @@ defineEmits<{ acao: [] }>()
 <template>
   <header class="gestao-topo">
     <h1>{{ titulo }}</h1>
-    <button v-if="acao" type="button" class="btn-primario" @click="$emit('acao')">
-      <UiIcon nome="mais" :tamanho="20" /> {{ acao }}
-    </button>
+    <div v-if="acao || $slots.extra" class="gestao-acoes">
+      <slot name="extra" />
+      <button v-if="acao" type="button" class="btn-primario" @click="$emit('acao')">
+        <UiIcon nome="mais" :tamanho="20" /> {{ acao }}
+      </button>
+    </div>
   </header>
 </template>
