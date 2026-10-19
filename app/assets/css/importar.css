@@ -1,0 +1,159 @@
+/* Importar contatos (clientes): folha em passos. Só tokens validados; alturas explícitas, sem centralização automática. */
+
+.gestao-acoes { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--e2); min-width: 0; }
+.gestao-acoes .btn-secundario { flex: none; height: var(--alvo); padding: 0 var(--e4); }
+
+.imp { min-width: 0; }
+.imp-passo { margin: 0 0 var(--e2); font-size: 1.125rem; line-height: 1.3; }
+.imp-passo:focus { outline: none; }
+.imp-apoio { margin: 0 0 var(--e3); color: var(--texto-suave); }
+.imp-vazio { padding: var(--e4) 0; text-align: center; }
+.imp .acoes-folha { display: flex; flex-wrap: wrap; gap: var(--e2); margin-top: var(--e4); }
+.imp .acoes-folha > button { flex: 1 1 120px; min-width: 0; height: var(--alvo); padding: 0 var(--e3); }
+
+/* privacidade */
+.imp-priv {
+  display: flex;
+  gap: var(--e3);
+  margin: 0 0 var(--e4);
+  padding: var(--e3);
+  background: var(--bg);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  color: var(--texto);
+}
+.imp-priv .icone { flex: none; margin-top: 2px; color: var(--primaria); }
+.imp-priv span { min-width: 0; }
+
+/* cartões grandes de escolha */
+.imp-opcao {
+  position: relative;
+  display: flex;
+  gap: var(--e3);
+  width: 100%;
+  min-height: 84px;
+  height: auto;
+  margin: 0 0 var(--e3);
+  padding: var(--e3) var(--e4);
+  background: var(--superficie);
+  color: var(--texto);
+  border: 2px solid var(--borda-controle);
+  border-radius: var(--raio);
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+}
+.imp-opcao:hover { background: var(--bg); }
+.imp-opcao:focus-within { outline: 3px solid var(--primaria); outline-offset: 2px; }
+.imp-opcao-icone {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  background: var(--bg);
+  color: var(--primaria);
+  border: 1px solid var(--borda);
+  border-radius: 50%;
+}
+.imp-opcao-icone .icone { display: block; margin: 9px; }
+.imp-opcao-texto { display: block; flex: 1; min-width: 0; }
+.imp-opcao-titulo { display: block; font-size: 1.0625rem; font-weight: 700; line-height: 1.3; }
+.imp-opcao-apoio { display: block; margin-top: 2px; color: var(--texto-suave); font-size: 0.9375rem; line-height: 1.4; }
+.imp-arquivo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* instruções colapsáveis */
+.imp-como { margin: 0; border-top: 1px solid var(--borda); }
+.imp-como:last-of-type { border-bottom: 1px solid var(--borda); }
+.imp-como summary { min-height: var(--alvo); padding: 10px 0; font-weight: 600; line-height: 24px; cursor: pointer; }
+.imp-como ol { margin: 0 0 var(--e3); padding-left: var(--e5); color: var(--texto-suave); }
+.imp-como li { padding: 2px 0; }
+
+/* progresso */
+.imp-barra { display: block; width: 100%; height: 12px; margin: var(--e4) 0 var(--e3); accent-color: var(--primaria); }
+
+/* prévia */
+.imp-aviso-limite { margin: 0 0 var(--e3); padding: var(--e2) var(--e3); border: 1px solid var(--aviso); border-radius: var(--raio-menor); color: var(--aviso); font-weight: 600; }
+.imp-filtros { margin-top: var(--e3); }
+.imp-filtros button { height: var(--alvo); padding: 0 var(--e2); }
+.imp-massa { display: flex; flex-wrap: wrap; gap: var(--e2); margin: 0 0 var(--e3); }
+.imp-massa button { flex: 1 1 150px; min-width: 0; height: var(--alvo); padding: 0 var(--e3); }
+.imp-contagem { margin: 0 0 var(--e2); color: var(--texto-suave); font-size: 0.875rem; }
+
+.imp-lista { margin: 0; padding: 0; list-style: none; }
+.imp-item { margin: 0; padding: 0; background: none; border: 0; border-bottom: 1px solid var(--borda); border-radius: 0; box-shadow: none; }
+.imp-linha {
+  display: flex;
+  gap: var(--e3);
+  min-height: 60px;
+  padding: var(--e2) 0;
+  font-weight: 400;
+  cursor: default;
+}
+label.imp-linha { cursor: pointer; }
+.imp-linha input[type='checkbox'] { margin-top: 10px; }
+.imp-sem-caixa { flex: none; width: 24px; height: 24px; margin-top: 10px; }
+.imp-texto { display: block; flex: 1; min-width: 0; }
+.imp-nome { display: block; overflow-wrap: anywhere; font-weight: 600; line-height: 1.3; }
+.imp-tel { display: block; overflow-wrap: anywhere; color: var(--texto-suave); font-size: 0.9375rem; line-height: 1.35; }
+.imp-selo {
+  flex: none;
+  align-self: flex-start;
+  height: 28px;
+  margin-top: 8px;
+  padding: 0 var(--e2);
+  background: var(--bg);
+  border: 1px solid currentcolor;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 26px;
+  white-space: nowrap;
+}
+.imp-selo .icone { vertical-align: -3px; margin-right: 4px; }
+.imp-selo[data-tom='ok'] { color: var(--sucesso); }
+.imp-selo[data-tom='neutro'] { color: var(--texto-suave); }
+.imp-selo[data-tom='erro'] { color: var(--erro); }
+@media (max-width: 380px) {
+  .imp-linha { flex-wrap: wrap; }
+  .imp-texto { flex-basis: calc(100% - 24px - var(--e3)); }
+  .imp-selo { margin: 0 0 var(--e1) calc(24px + var(--e3)); }
+}
+
+/* rodapé fixo do passo (dentro da folha que rola) */
+.imp-rodape {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin: var(--e3) calc(-1 * var(--e4)) calc(-1 * (var(--e4) + env(safe-area-inset-bottom)));
+  padding: var(--e3) var(--e4) calc(var(--e3) + env(safe-area-inset-bottom));
+  background: var(--superficie);
+  border-top: 1px solid var(--borda);
+}
+.imp-aviso { margin: 0 0 var(--e2); color: var(--texto-suave); font-size: 0.875rem; }
+.imp-acoes { display: flex; gap: var(--e2); margin: 0; }
+.imp-acoes button { flex: 1 1 0; min-width: 0; height: var(--alvo); padding: 0 var(--e3); }
+.imp-acoes .btn-primario { flex: 2 1 0; }
+
+/* resultado */
+.imp-final { padding: var(--e4) 0; text-align: center; }
+.imp-final-icone {
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--e3);
+  background: var(--sucesso);
+  color: var(--on-primaria);
+  border-radius: 50%;
+}
+.imp-final-icone .icone { display: block; margin: 16px; }
+.imp-final .imp-passo { font-size: 1.25rem; }
