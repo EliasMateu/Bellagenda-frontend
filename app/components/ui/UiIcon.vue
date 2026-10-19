@@ -3,7 +3,7 @@
 export type NomeIcone =
   | 'calendario' | 'mais' | 'menu' | 'compartilhar' | 'copiar' | 'check' | 'chevron-esquerda'
   | 'chevron-direita' | 'chevron-baixo' | 'relogio' | 'usuario' | 'whatsapp' | 'servicos'
-  | 'horarios' | 'calendario-check' | 'etiqueta' | 'lupa' | 'seta-direita' | 'agenda-relogio' | 'mais-opcoes' | 'filtro' | 'fechar' | 'alerta' | 'agenda-vazia' | 'pincel' | 'olho' | 'olho-fechado' | 'cadeado' | 'escudo-check'
+  | 'horarios' | 'calendario-check' | 'etiqueta' | 'lupa' | 'seta-direita' | 'agenda-relogio' | 'mais-opcoes' | 'filtro' | 'fechar' | 'alerta' | 'agenda-vazia' | 'pincel' | 'olho' | 'olho-fechado' | 'cadeado' | 'escudo-check' | 'contatos' | 'importar'
 
 const RELOGIO = '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'
 const CALENDARIO = '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'
@@ -37,6 +37,8 @@ const FORMAS: Record<NomeIcone, string> = {
   'olho-fechado': '<path d="M3 3l18 18M10.6 5.7A9 9 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-3 3.8M6.5 7.2A15.6 15.6 0 0 0 2.5 12S6 18.5 12 18.5a9 9 0 0 0 3.7-.8M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
   'cadeado': '<rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5M12 14.5v2.5"/>',
   'escudo-check': '<path d="M12 3l7.5 3v5.5c0 4.5-3 8-7.5 9.5-4.5-1.5-7.5-5-7.5-9.5V6L12 3z"/><path d="M8.8 12l2.2 2.2 4.2-4.4"/>',
+  'contatos': '<rect x="5.5" y="3.5" width="14" height="17" rx="2.5"/><circle cx="12.5" cy="10" r="2.5"/><path d="M8.5 16.5c.6-1.6 2-2.5 4-2.5s3.4.9 4 2.5M3 8h2.5M3 12h2.5M3 16h2.5"/>',
+  'importar': '<path d="M12 4v10M7.5 10l4.5 4.5 4.5-4.5M5 19.5h14"/>',
   'pincel': '<path d="M19.5 4.5a2 2 0 0 0-2.8 0L10 11.2l2.8 2.8 6.7-6.7a2 2 0 0 0 0-2.8z"/><path d="M9.3 12.6C7 12.6 5.5 14 5.5 16c0 1.4-.7 2.4-2 3 3.5 1.3 8 .2 8-3.3"/>',
 }
 

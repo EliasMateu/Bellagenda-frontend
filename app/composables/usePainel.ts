@@ -36,6 +36,21 @@ export interface ClientePainel {
   consentimento_em: string | null
   anonimizado_em: string | null
 }
+export interface ContatoImportar { nome: string, telefone: string }
+export interface ItemImportacao {
+  indice: number
+  status: 'novo' | 'duplicado' | 'invalido'
+  telefone: string | null
+  nome: string
+  motivo: null | 'ja_cadastrado' | 'repetido_na_lista' | 'telefone_invalido' | 'nome_invalido'
+  cliente_existente: string | null
+}
+export interface RespostaImportacao {
+  simulacao: boolean
+  resumo: { total: number, novos: number, duplicados: number, invalidos: number }
+  itens: ItemImportacao[]
+  criados: number
+}
 export interface Configuracao {
   timezone: string
   antecedencia_min_cancelamento_h: number
@@ -190,7 +205,12 @@ export function usePainelApi() {
   })
   return {
     servicos: crud<ServicoPainel>('servicos'),
-    clientes: crud<ClientePainel>('clientes'),
+    clientes: {
+      ...crud<ClientePainel>('clientes'),
+      // simular=true nunca grava; false cria só os novos (máx. 300 por requisição)
+      importar: (contatos: ContatoImportar[], simular: boolean) =>
+        request<RespostaImportacao>('/painel/clientes/importar/', { method: 'POST', body: { contatos, simular } }),
+    },
     horarios: crud<HorarioTrabalho>('horarios-trabalho'),
     bloqueios: crud<Bloqueio>('bloqueios'),
     agendamentos: {

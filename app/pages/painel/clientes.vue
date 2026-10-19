@@ -8,6 +8,7 @@ const envio = useEnvio()
 const clientes = ref<ClientePainel[]>([])
 const carregou = ref(false)
 const busca = ref('')
+const importando = ref(false)
 const editando = ref<number | 'novo' | null>(null)
 const form = reactive({ nome: '', telefone: '', observacoes: '' })
 
@@ -67,7 +68,13 @@ onMounted(carregar)
 
 <template>
   <section class="gestao">
-    <GestaoCabecalho titulo="Clientes" acao="Nova cliente" @acao="abrir()" />
+    <GestaoCabecalho titulo="Clientes" acao="Nova cliente" @acao="abrir()">
+      <template #extra>
+        <button type="button" class="btn-secundario" @click="importando = true">
+          <UiIcon nome="contatos" :tamanho="20" /> Importar contatos
+        </button>
+      </template>
+    </GestaoCabecalho>
 
     <UiSearchField v-model="busca" label="Buscar por nome ou telefone" placeholder="Buscar por nome ou telefone" @enviar="buscarAgora" />
 
@@ -103,6 +110,8 @@ onMounted(carregar)
         ><UiIcon nome="whatsapp" :tamanho="20" /></a>
       </li>
     </ul>
+
+    <ImportarContatos v-model="importando" @concluido="carregar" />
 
     <UiSheet v-model="folha" :titulo="editando === 'novo' ? 'Nova cliente' : 'Editar cliente'">
       <form @submit.prevent="salvar">
